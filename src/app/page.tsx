@@ -596,6 +596,17 @@ export default function UiusasDefinitive() {
   const [questionCount, setQuestionCount] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+
+  // Carregar tema do localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('uiusas_theme') as 'dark' | 'light';
+    if (savedTheme) setTheme(savedTheme);
+  }, []);
+
+  // Salvar tema no localStorage
+  useEffect(() => {
+    localStorage.setItem('uiusas_theme', theme);
+  }, [theme]);
   
   const [isAdmin, setIsAdmin] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -761,10 +772,11 @@ export default function UiusasDefinitive() {
         .light-mode .border-white\\/10, .light-mode .border-white\\/5 { border-color: rgba(0, 0, 0, 0.1) !important; }
         .light-mode .bg-black\\/60 .border-white\\/10 { border-color: rgba(255, 255, 255, 0.1) !important; }
 
-        .light-mode .text-fuchsia-400 { color: #9d174d !important; text-shadow: none !important; }
-        .light-mode .text-emerald-400 { color: #065f46 !important; text-shadow: none !important; }
-        .light-mode .text-cyan-400 { color: #155e75 !important; text-shadow: none !important; }
-        .light-mode .text-cyan-300 { color: #164e63 !important; text-shadow: none !important; }
+        /* High Contrast Nier Substitutes for Light Mode */
+        .light-mode .text-fuchsia-400 { color: #701a1a !important; text-shadow: none !important; font-weight: bold !important; } /* Wine/Burgundy */
+        .light-mode .text-emerald-400 { color: #064e3b !important; text-shadow: none !important; font-weight: bold !important; } /* Forest Green */
+        .light-mode .text-cyan-400 { color: #0f172a !important; text-shadow: none !important; font-weight: bold !important; } /* Deep Navy/Black */
+        .light-mode .text-cyan-300 { color: #1e293b !important; text-shadow: none !important; }
         
         .light-mode .bg-cyan-950\\/90 { background-color: #454138 !important; }
         .light-mode .bg-gradient-to-t { background-image: linear-gradient(to top, #e2e2d5, transparent) !important; }
@@ -772,8 +784,10 @@ export default function UiusasDefinitive() {
         .light-mode .to-cyan-200 { --tw-gradient-to: #8b8675 !important; }
         
         /* Sidebar/Dashboard tab consistency */
-        .light-mode .bg-cyan-500\\/20 { background-color: rgba(21, 94, 117, 0.2) !important; }
-        .light-mode .shadow-\\[0_0_10px_rgba\\(34\\,211\\,238\\,0\\.5\\)\\] { box-shadow: 0 0 10px rgba(21, 94, 117, 0.3) !important; }
+        .light-mode .bg-cyan-500\\/20 { background-color: rgba(15, 23, 42, 0.15) !important; }
+        .light-mode .shadow-\\[0_0_10px_rgba\\(34\\,211\\,238\\,0\\.5\\)\\] { box-shadow: 4px 4px 0px rgba(0,0,0,0.1) !important; }
+        .light-mode .border-cyan-400 { border-color: #0f172a !important; }
+        .light-mode .text-cyan-300 { color: #0f172a !important; }
       `}} />
       {/* MODAL GESTOR DE SIMULADOS (GLOBAL) */}
       <AnimatePresence>
