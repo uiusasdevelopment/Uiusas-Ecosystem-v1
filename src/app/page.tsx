@@ -660,6 +660,32 @@ export default function UiusasDefinitive() {
     setUserProfile(prev => prev ? { ...prev, display_name: newName, nivel: newNivel, cra: newCra } : null);
   };
 
+  const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+
+  const layoutProps: LayoutProps = {
+    activeMod,
+    setActiveMod,
+    tab,
+    setTab,
+    isAdmin,
+    userProfile,
+    onOpenProfile: () => router.push('/perfil'),
+    simulationQuestions,
+    simulationTitle,
+    simulationSubject,
+    simulationId,
+    setSimulationQuestions: (ids, title, sub, id) => {
+      setSimulationQuestions(ids);
+      setSimulationTitle(title);
+      setSimulationSubject(sub);
+      setSimulationId(id);
+    },
+    questionCount,
+    onOpenSimulationManager: () => setShowSimulationManager(true),
+    theme,
+    toggleTheme
+  };
+
   return (
     <div className={`w-screen h-screen overflow-hidden flex flex-col font-mono relative transition-colors duration-700 ${theme === 'dark' ? 'bg-black text-white' : 'bg-[#e2e2d5] text-[#454138] light-mode'}`}>
         
