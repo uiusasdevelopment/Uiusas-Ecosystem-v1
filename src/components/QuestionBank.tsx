@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { Database, Search, Upload, Target, Trash2, Loader2, AlertTriangle, Eye, EyeOff, Sparkles, Filter, Check, ChevronDown, ChevronUp, Layers, Settings, Book, ArrowLeft, X, ChevronRight, Plus } from 'lucide-react';
-import { UserProfile } from '@/app/page';
+import { UserProfile } from '@/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AdminSubjectManager } from './AdminSubjectManager';
 

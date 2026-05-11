@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { Target, Clock, Heart, ArrowRight, ArrowLeft, Check, X, Menu, Printer, AlertTriangle, Lightbulb, ChevronDown, ChevronUp, ShieldAlert, Zap, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserProfile } from '@/app/page';
+import { UserProfile } from '@/types';
 
 interface SimulatorEngineProps {
   questionIds: string[];

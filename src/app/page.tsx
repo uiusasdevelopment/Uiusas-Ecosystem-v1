@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { UserProfile } from '@/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, BookOpen, Activity, Database, ShieldAlert, Cpu, 
@@ -55,16 +56,6 @@ const SAO_ITEMS = [
   { name: 'TEMA', icon: Sun }
 ];
 
-export interface UserProfile {
-  id: string;
-  email: string;
-  nivel: string;
-  cra: number;
-  display_name: string;
-  onboarding_complete?: boolean;
-  active_subjects?: string[];
-  total_points?: number;
-}
 
 interface LayoutProps {
   activeMod: string;

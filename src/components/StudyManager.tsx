@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, BookOpen, Trash2, Target, CheckCircle, Clock, ChevronRight, Loader2, Play } from 'lucide-react';
-import { UserProfile } from '@/app/page';
+import { UserProfile } from '@/types';
 
 interface StudyManagerProps {
   userProfile: UserProfile | null;
