@@ -745,53 +745,58 @@ export default function UiusasDefinitive() {
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Monochromatic Nier:Automata Light Theme */
-        .light-mode { background-color: #bab5a1 !important; }
+        /* Monochromatic Nier:Automata Light Theme - GLOBAL OVERRIDE */
+        .light-mode { background-color: #bab5a1 !important; color: #2a2a24 !important; }
         .light-mode .bg-black, .light-mode .bg-black\\/90 { background-color: #bab5a1 !important; }
         
-        /* Dark areas (Sidebar, Header, Main Panel Background) */
-        .light-mode .bg-black\\/80, .light-mode .bg-black\\/70, .light-mode .bg-black\\/60, .light-mode .bg-cyan-950\\/90 { 
+        /* Dark areas: Sidebar, Header, Active Tabs (Charcoal background) */
+        .light-mode .bg-black\\/80, .light-mode .bg-black\\/70, .light-mode .bg-black\\/60, .light-mode .bg-cyan-950\\/90, .light-mode .bg-cyan-950 { 
           background-color: #454138 !important; 
-          color: #bab5a1 !important; 
-          border: 1px solid rgba(0,0,0,0.3) !important;
+          border: 1px solid #2a2a24 !important;
           backdrop-filter: none !important;
         }
+        /* Enforce light text inside dark areas */
+        .light-mode .bg-black\\/80 *, .light-mode .bg-black\\/70 *, .light-mode .bg-black\\/60 *, .light-mode .bg-cyan-950\\/90 *, .light-mode .bg-cyan-950 * {
+          color: #bab5a1 !important;
+          border-color: rgba(186, 181, 161, 0.2) !important;
+        }
         
-        /* Inner cards and boxes (Light paper look) */
-        .light-mode .bg-black\\/40, .light-mode .bg-black\\/50, .light-mode .bg-white\\/10, .light-mode .bg-white\\/5 { 
+        /* Light areas: Cards, Lists, Content (Paper background) */
+        .light-mode .bg-black\\/40, .light-mode .bg-black\\/50, .light-mode .bg-white\\/10, .light-mode .bg-white\\/5, .light-mode .bg-white\\/\\[0\\.025\\] { 
           background-color: #cdc8b1 !important; 
-          color: #454138 !important;
-          border: 1px solid rgba(0,0,0,0.2) !important;
+          border: 1px solid rgba(0,0,0,0.15) !important;
           backdrop-filter: none !important;
+        }
+        /* Enforce dark text inside light areas */
+        .light-mode .bg-black\\/40 *, .light-mode .bg-black\\/50 *, .light-mode .bg-white\\/10 *, .light-mode .bg-white\\/5 *, .light-mode .bg-white\\/\\[0\\.025\\] * {
+          color: #2a2a24 !important;
+          border-color: rgba(0, 0, 0, 0.1) !important;
         }
 
-        /* High Contrast Typography */
-        .light-mode .text-white { color: #454138 !important; }
-        .light-mode .bg-black\\/60 .text-white, .light-mode .bg-black\\/70 .text-white, .light-mode .bg-black\\/80 .text-white, .light-mode .bg-cyan-950\\/90 .text-white { color: #bab5a1 !important; }
+        /* Catch-all for Tailwind text classes that remain white */
+        .light-mode .text-white, .light-mode .text-zinc-100, .light-mode .text-zinc-200, .light-mode .text-zinc-300, .light-mode .text-zinc-400 {
+          color: #2a2a24 !important;
+        }
         
-        /* Monochromatic Highlights */
-        .light-mode .text-fuchsia-400, .light-mode .text-emerald-400, .light-mode .text-cyan-400, .light-mode .text-cyan-300 { 
-          color: #2a2a24 !important; 
+        /* Highlights in Monochrome */
+        .light-mode .text-fuchsia-400, .light-mode .text-emerald-400, .light-mode .text-cyan-400, .light-mode .text-cyan-300, .light-mode .text-amber-400 { 
+          color: #000000 !important; 
           text-shadow: none !important; 
           font-weight: 800 !important;
-          background-color: rgba(0,0,0,0.05);
-          padding: 0 2px;
         }
 
-        .light-mode .text-zinc-400, .light-mode .text-zinc-500, .light-mode .text-zinc-600 { color: #6a6a5a !important; }
+        /* Buttons and Interactive Elements */
+        .light-mode button { border-color: #454138 !important; }
+        .light-mode .bg-cyan-500\\/20, .light-mode .bg-fuchsia-500\\/20, .light-mode .bg-emerald-500\\/20 { 
+          background-color: #454138 !important; 
+        }
+        .light-mode .bg-cyan-500\\/20 *, .light-mode .bg-fuchsia-500\\/20 *, .light-mode .bg-emerald-500\\/20 * { 
+          color: #bab5a1 !important; 
+        }
 
-        /* UI Elements */
-        .light-mode .border-white\\/10, .light-mode .border-white\\/5, .light-mode .border-cyan-400 { border-color: #454138 !important; }
-        .light-mode .shadow-\\[0_0_10px_rgba\\(34\\,211\\,238\\,0\\.5\\)\\] { box-shadow: 3px 3px 0px #454138 !important; }
-        .light-mode .bg-cyan-500\\/20 { background-color: #454138 !important; color: #bab5a1 !important; }
-        
-        /* Gradients removal for paper look */
+        /* Layout specific: Sidebar shadows and grids */
+        .light-mode .shadow-\\[0_0_10px_rgba\\(34\\,211\\,238\\,0\\.5\\)\\] { box-shadow: 4px 4px 0px #454138 !important; }
         .light-mode .bg-gradient-to-t { background-image: none !important; background-color: #bab5a1 !important; }
-        .light-mode .from-white { --tw-gradient-from: #454138 !important; }
-        .light-mode .to-cyan-200 { --tw-gradient-to: #454138 !important; }
-        
-        /* Specific Fixes for illegible buttons */
-        .light-mode .bg-fuchsia-500\\/20, .light-mode .bg-emerald-500\\/20 { background-color: #454138 !important; color: #bab5a1 !important; }
       `}} />
       {/* MODAL GESTOR DE SIMULADOS (GLOBAL) */}
       <AnimatePresence>
