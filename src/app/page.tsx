@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { UserProfile } from '@/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, BookOpen, Activity, Database, ShieldAlert, Cpu, 
@@ -56,6 +55,16 @@ const SAO_ITEMS = [
   { name: 'TEMA', icon: Sun }
 ];
 
+export interface UserProfile {
+  id: string;
+  email: string;
+  nivel: string;
+  cra: number;
+  display_name: string;
+  onboarding_complete?: boolean;
+  active_subjects?: string[];
+  total_points?: number;
+}
 
 interface LayoutProps {
   activeMod: string;
@@ -135,7 +144,7 @@ const DashboardContent = ({ userProfile, activeColor, questionCount }: { userPro
           <Zap className={`w-8 h-8 mb-4 ${activeColor === 'cyan' ? 'text-cyan-400' : activeColor === 'fuchsia' ? 'text-fuchsia-400' : 'text-emerald-400'} group-hover:scale-110 transition-transform`} />
           <span className="text-sm font-bold tracking-widest mb-1 text-white">PATENTE (PONTOS)</span>
           <span className="text-[10px] text-zinc-500 tracking-widest">
-            {isGuest ? `${guestStats?.total_points || 0} PTS ACUMULADOS` : `${userProfile?.total_points || 0} PTS ACUMULADOS`}
+            {isGuest ? `${guestStats.total_points} PTS ACUMULADOS` : `${userProfile?.total_points || 0} PTS ACUMULADOS`}
           </span>
         </div>
       </div>
@@ -603,50 +612,16 @@ export default function UiusasDefinitive() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
-  // Carregar tema e estado de simulado do localStorage
+  // Carregar tema do localStorage
   useEffect(() => {
     const savedTheme = localStorage.getItem('uiusas_theme') as 'dark' | 'light';
     if (savedTheme) setTheme(savedTheme);
-
-    // Recuperar simulado ativo se for visitante
-    try {
-      const savedSim = localStorage.getItem('uiusas_guest_active_sim');
-      if (savedSim && !userProfile) {
-        const data = JSON.parse(savedSim);
-        if (data && data.ids) {
-          setSimulationQuestions(data.ids);
-          setSimulationTitle(data.title);
-          setSimulationSubject(data.subject);
-          setSimulationId(data.id);
-          setTab(data.tab || 3);
-        }
-      }
-    } catch (e) {
-      console.error("Erro ao carregar simulado do localStorage", e);
-    }
-  }, [userProfile]);
+  }, []);
 
   // Salvar tema no localStorage
   useEffect(() => {
     localStorage.setItem('uiusas_theme', theme);
   }, [theme]);
-
-  // Salvar estado de simulado para convidados
-  useEffect(() => {
-    if (!userProfile) {
-      if (simulationQuestions) {
-        localStorage.setItem('uiusas_guest_active_sim', JSON.stringify({
-          ids: simulationQuestions,
-          title: simulationTitle,
-          subject: simulationSubject,
-          id: simulationId,
-          tab: tab
-        }));
-      } else {
-        localStorage.removeItem('uiusas_guest_active_sim');
-      }
-    }
-  }, [simulationQuestions, simulationTitle, simulationSubject, simulationId, tab, userProfile]);
   
   const [isAdmin, setIsAdmin] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);

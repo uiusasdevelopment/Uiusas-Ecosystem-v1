@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, BookOpen, Trash2, Target, CheckCircle, Clock, ChevronRight, Loader2, Play } from 'lucide-react';
-import { UserProfile } from '@/types';
+import { UserProfile } from '@/app/page';
 
 interface StudyManagerProps {
   userProfile: UserProfile | null;
@@ -77,38 +77,6 @@ export function StudyManager({ userProfile, type, onStartSimulation }: StudyMana
           
         if (qData) setItems(qData);
       }
-
-      if (type === 'REVIEWS') {
-        const guestSims: any[] = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key?.startsWith('uiusas_guest_prog_')) {
-            try {
-              const raw = localStorage.getItem(key);
-              if (!raw) continue;
-              const prog = JSON.parse(raw);
-              if (prog && !prog.completed) {
-                // Tentar buscar detalhes do simulado no Supabase para exibir título bonito
-                let simDetail = null;
-                if (prog.simulation_id && typeof prog.simulation_id === 'string' && !prog.simulation_id.startsWith('custom_')) {
-                  const { data } = await supabase
-                    .from('quiz_simulations')
-                    .select('title, subject')
-                    .eq('id', prog.simulation_id)
-                    .single();
-                  simDetail = data;
-                }
-                
-                guestSims.push({
-                  ...prog,
-                  quiz_simulations: simDetail || { title: "Simulado Personalizado", subject: "Treino" }
-                });
-              }
-            } catch (e) { console.error("Erro parse guest prog", e); }
-          }
-        }
-        setIncompleteSimulations(guestSims);
-      }
     }
 
     setLoading(false);
@@ -117,66 +85,32 @@ export function StudyManager({ userProfile, type, onStartSimulation }: StudyMana
   const deleteProgress = async (simId: string) => {
     if (!confirm("Deseja apagar o progresso deste simulado?")) return;
     
-    if (userProfile?.id) {
-      const { error } = await supabase
-        .from('quiz_simulation_progress')
-        .delete()
-        .eq('user_id', userProfile?.id)
-        .eq('simulation_id', simId);
-      
-      if (!error) {
-        setIncompleteSimulations(prev => prev.filter(s => s.simulation_id !== simId));
-      }
-    } else {
-      // GUEST MODE
-      localStorage.removeItem(`uiusas_guest_prog_${simId}`);
+    const { error } = await supabase
+      .from('quiz_simulation_progress')
+      .delete()
+      .eq('user_id', userProfile?.id)
+      .eq('simulation_id', simId);
+    
+    if (!error) {
       setIncompleteSimulations(prev => prev.filter(s => s.simulation_id !== simId));
     }
   };
 
   const handleContinue = async (sim: any) => {
-    if (userProfile?.id) {
-      // Buscar os IDs das questões desse simulado no Banco
-      const { data } = await supabase
-        .from('quiz_simulation_questions')
-        .select('question_id')
-        .eq('simulation_id', sim.simulation_id)
-        .order('question_order', { ascending: true });
-      
-      if (data && data.length > 0) {
-        onStartSimulation(
-          data.map(d => d.question_id), 
-          sim.quiz_simulations?.title, 
-          sim.quiz_simulations?.subject, 
-          sim.simulation_id
-        );
-      }
-    } else {
-      // GUEST MODE: Pegar IDs do objeto salvo (que agora incluímos)
-      if (sim.question_ids && sim.question_ids.length > 0) {
-        onStartSimulation(
-          sim.question_ids,
-          sim.quiz_simulations?.title,
-          sim.quiz_simulations?.subject,
-          sim.simulation_id
-        );
-      } else {
-        // Fallback para simulados oficiais se não tiver IDs salvos no objeto
-        const { data } = await supabase
-          .from('quiz_simulation_questions')
-          .select('question_id')
-          .eq('simulation_id', sim.simulation_id)
-          .order('question_order', { ascending: true });
-        
-        if (data && data.length > 0) {
-          onStartSimulation(
-            data.map(d => d.question_id), 
-            sim.quiz_simulations?.title, 
-            sim.quiz_simulations?.subject, 
-            sim.simulation_id
-          );
-        }
-      }
+    // Buscar os IDs das questões desse simulado
+    const { data } = await supabase
+      .from('quiz_simulation_questions')
+      .select('question_id')
+      .eq('simulation_id', sim.simulation_id)
+      .order('question_order', { ascending: true });
+    
+    if (data && data.length > 0) {
+      onStartSimulation(
+        data.map(d => d.question_id), 
+        sim.quiz_simulations?.title, 
+        sim.quiz_simulations?.subject, 
+        sim.simulation_id
+      );
     }
   };
 

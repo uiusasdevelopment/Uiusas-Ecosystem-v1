@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { BookOpen, Upload, Trash2, Download, Search, FileText, Loader2, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Maximize2, LayoutList, Maximize, Minimize } from 'lucide-react';
-import { UserProfile } from '@/types';
+import { UserProfile } from '@/app/page';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface PdfLibraryProps {

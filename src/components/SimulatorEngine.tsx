@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { Target, Clock, Heart, ArrowRight, ArrowLeft, Check, X, Menu, Printer, AlertTriangle, Lightbulb, ChevronDown, ChevronUp, ShieldAlert, Zap, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserProfile } from '@/types';
+import { UserProfile } from '@/app/page';
 
 interface SimulatorEngineProps {
   questionIds: string[];
@@ -90,16 +90,12 @@ export function SimulatorEngine({
       }
     } else {
       // GUEST MODE: Check Local Storage
-      try {
-        const localProg = localStorage.getItem(`uiusas_guest_prog_${simulationId}`);
-        if (localProg) {
-          const data = JSON.parse(localProg);
-          if (data && !data.completed) {
-            setSavedProgress(data);
-          }
+      const localProg = localStorage.getItem(`uiusas_guest_prog_${simulationId}`);
+      if (localProg) {
+        const data = JSON.parse(localProg);
+        if (!data.completed) {
+          setSavedProgress(data);
         }
-      } catch (e) {
-        console.error("Erro ao carregar progresso local", e);
       }
     }
     setCheckingProgress(false);
@@ -115,13 +111,6 @@ export function SimulatorEngine({
     setMode(savedProgress.mode || 'TRAINING');
     setPhase('PLAYING');
   };
-
-  // Auto-save effect
-  useEffect(() => {
-    if (phase === 'PLAYING' && questions.length > 0) {
-      saveProgress();
-    }
-  }, [currentIndex, answers, results, phase]);
 
   const saveProgress = async (completed = false) => {
     if (!simulationId || phase !== 'PLAYING') return;
@@ -147,7 +136,6 @@ export function SimulatorEngine({
       // GUEST PROGRESS PERSISTENCE
       const guestProgress = {
         simulation_id: simulationId,
-        question_ids: questions.map(q => q.id), // CRUCIAL PARA RETOMAR
         current_index: currentIndex,
         answers,
         results,

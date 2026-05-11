@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { Database, Search, Upload, Target, Trash2, Loader2, AlertTriangle, Eye, EyeOff, Sparkles, Filter, Check, ChevronDown, ChevronUp, Layers, Settings, Book, ArrowLeft, X, ChevronRight, Plus } from 'lucide-react';
-import { UserProfile } from '@/types';
+import { UserProfile } from '@/app/page';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AdminSubjectManager } from './AdminSubjectManager';
 
@@ -132,8 +132,7 @@ export function QuestionBank({ userProfile, isAdmin, onStartSimulation, onOpenSi
 
   const handleStartSelection = () => {
     if (selectedQuestions.size === 0) return;
-    const customId = `custom_${Date.now()}`;
-    onStartSimulation?.(Array.from(selectedQuestions), "Treinamento Personalizado", filterSubject !== 'ALL' ? filterSubject : "Múltiplas Matérias", customId);
+    onStartSimulation?.(Array.from(selectedQuestions), "Treinamento Personalizado", filterSubject !== 'ALL' ? filterSubject : "Múltiplas Matérias");
   };
 
   const deleteSelectedQuestions = async () => {
