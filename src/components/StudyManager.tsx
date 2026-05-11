@@ -78,21 +78,26 @@ export function StudyManager({ userProfile, type, onStartSimulation }: StudyMana
         if (qData) setItems(qData);
       }
 
-      // Se for REVIEWS, buscar simulados não concluídos no localStorage
       if (type === 'REVIEWS') {
         const guestSims: any[] = [];
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
           if (key?.startsWith('uiusas_guest_prog_')) {
             try {
-              const prog = JSON.parse(localStorage.getItem(key)!);
-              if (!prog.completed) {
+              const raw = localStorage.getItem(key);
+              if (!raw) continue;
+              const prog = JSON.parse(raw);
+              if (prog && !prog.completed) {
                 // Tentar buscar detalhes do simulado no Supabase para exibir título bonito
-                const { data: simDetail } = await supabase
-                  .from('quiz_simulations')
-                  .select('title, subject')
-                  .eq('id', prog.simulation_id)
-                  .single();
+                let simDetail = null;
+                if (prog.simulation_id && !prog.simulation_id.startsWith('custom_')) {
+                  const { data } = await supabase
+                    .from('quiz_simulations')
+                    .select('title, subject')
+                    .eq('id', prog.simulation_id)
+                    .single();
+                  simDetail = data;
+                }
                 
                 guestSims.push({
                   ...prog,

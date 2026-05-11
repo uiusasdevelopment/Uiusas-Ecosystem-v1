@@ -618,14 +618,20 @@ export default function UiusasDefinitive() {
     if (savedTheme) setTheme(savedTheme);
 
     // Recuperar simulado ativo se for visitante
-    const savedSim = localStorage.getItem('uiusas_guest_active_sim');
-    if (savedSim && !userProfile) {
-      const data = JSON.parse(savedSim);
-      setSimulationQuestions(data.ids);
-      setSimulationTitle(data.title);
-      setSimulationSubject(data.subject);
-      setSimulationId(data.id);
-      setTab(data.tab || 3);
+    try {
+      const savedSim = localStorage.getItem('uiusas_guest_active_sim');
+      if (savedSim && !userProfile) {
+        const data = JSON.parse(savedSim);
+        if (data && data.ids) {
+          setSimulationQuestions(data.ids);
+          setSimulationTitle(data.title);
+          setSimulationSubject(data.subject);
+          setSimulationId(data.id);
+          setTab(data.tab || 3);
+        }
+      }
+    } catch (e) {
+      console.error("Erro ao carregar simulado do localStorage", e);
     }
   }, [userProfile]);
 

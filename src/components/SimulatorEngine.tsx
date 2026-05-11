@@ -90,12 +90,16 @@ export function SimulatorEngine({
       }
     } else {
       // GUEST MODE: Check Local Storage
-      const localProg = localStorage.getItem(`uiusas_guest_prog_${simulationId}`);
-      if (localProg) {
-        const data = JSON.parse(localProg);
-        if (!data.completed) {
-          setSavedProgress(data);
+      try {
+        const localProg = localStorage.getItem(`uiusas_guest_prog_${simulationId}`);
+        if (localProg) {
+          const data = JSON.parse(localProg);
+          if (data && !data.completed) {
+            setSavedProgress(data);
+          }
         }
+      } catch (e) {
+        console.error("Erro ao carregar progresso local", e);
       }
     }
     setCheckingProgress(false);
