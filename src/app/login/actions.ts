@@ -4,13 +4,16 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 
+import { headers } from 'next/headers'
+
 export async function loginWithGoogle() {
   const supabase = createClient()
+  const origin = headers().get('origin')
   
-  const { data, error } = await supabase.auth.signInWithOAuth({
+  const { data } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: 'http://localhost:3000/auth/callback',
+      redirectTo: `${origin}/auth/callback`,
     },
   })
 
