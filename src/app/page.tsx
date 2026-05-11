@@ -734,22 +734,26 @@ export default function UiusasDefinitive() {
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Light Mode Overrides */
-        .light-mode .bg-black, .light-mode .bg-black\\/90, .light-mode .bg-black\\/80, .light-mode .bg-black\\/60, .light-mode .bg-black\\/40, .light-mode .bg-black\\/50 { background-color: rgba(220, 220, 205, 0.9) !important; backdrop-filter: blur(20px); }
-        .light-mode .border-white\\/10, .light-mode .border-white\\/5, .light-mode .border-zinc-800, .light-mode .border-cyan-500\\/50 { border-color: rgba(69, 65, 56, 0.2) !important; }
-        .light-mode .text-zinc-400, .light-mode .text-zinc-500, .light-mode .text-zinc-600, .light-mode .text-cyan-300 { color: #8b8675 !important; }
-        .light-mode .text-white, .light-mode .text-cyan-400 { color: #454138 !important; }
-        .light-mode .bg-white\\/5 { background-color: rgba(69, 65, 56, 0.08) !important; }
-        .light-mode .bg-white\\/10 { background-color: rgba(69, 65, 56, 0.12) !important; }
-        .light-mode .shadow-\\[0_0_20px_rgba\\(0\\,0\\,0\\,0\\.5\\)\\] { shadow: 0 10px 30px rgba(69, 65, 56, 0.1) !important; }
-        .light-mode .bg-cyan-500\\/20 { background-color: rgba(69, 65, 56, 0.1) !important; }
-        .light-mode .bg-cyan-950\\/90 { background-color: rgba(69, 65, 56, 0.15) !important; }
-        .light-mode .bg-cyan-900\\/30 { background-color: rgba(69, 65, 56, 0.1) !important; }
-        .light-mode .text-fuchsia-400 { color: #a66a7b !important; }
-        .light-mode .text-emerald-400 { color: #6a8c6a !important; }
-        .light-mode .from-white { --tw-gradient-from: #454138 !important; }
-        .light-mode .to-cyan-200 { --tw-gradient-to: #8b8675 !important; }
-        .light-mode .bg-gradient-to-t { background-image: linear-gradient(to top, rgba(220, 220, 205, 0.95), transparent) !important; }
+        /* Light Mode Overrides - Nier:Automata High Contrast Edition */
+        .light-mode { background-color: #cdbd9a !important; }
+        .light-mode .bg-black, .light-mode .bg-black\\/90 { background-color: #dad4bb !important; }
+        .light-mode .bg-black\\/80, .light-mode .bg-black\\/60, .light-mode .bg-black\\/40, .light-mode .bg-black\\/50 { background-color: #efeedd !important; backdrop-filter: none !important; border: 1px solid rgba(0,0,0,0.1) !important; }
+        .light-mode .border-white\\/10, .light-mode .border-white\\/5, .light-mode .border-zinc-800, .light-mode .border-cyan-500\\/50 { border-color: rgba(0, 0, 0, 0.2) !important; }
+        .light-mode .text-zinc-400, .light-mode .text-zinc-500, .light-mode .text-zinc-600, .light-mode .text-cyan-300 { color: #5d5d52 !important; }
+        .light-mode .text-white, .light-mode .text-cyan-400 { color: #3a3a30 !important; font-weight: 600 !important; }
+        .light-mode .bg-white\\/5 { background-color: rgba(0, 0, 0, 0.05) !important; }
+        .light-mode .bg-white\\/10 { background-color: rgba(0, 0, 0, 0.08) !important; }
+        .light-mode .shadow-\\[0_0_20px_rgba\\(0\\,0\\,0\\,0\\.5\\)\\] { box-shadow: 4px 4px 0px rgba(0,0,0,0.1) !important; }
+        .light-mode .bg-cyan-500\\/20 { background-color: rgba(0, 0, 0, 0.05) !important; }
+        .light-mode .bg-cyan-950\\/90 { background-color: #cdbd9a !important; }
+        .light-mode .bg-cyan-900\\/30 { background-color: #efeedd !important; }
+        .light-mode .text-fuchsia-400 { color: #8e445d !important; }
+        .light-mode .text-emerald-400 { color: #4e6e4e !important; }
+        .light-mode .from-white { --tw-gradient-from: #3a3a30 !important; }
+        .light-mode .to-cyan-200 { --tw-gradient-to: #5d5d52 !important; }
+        .light-mode .bg-gradient-to-t { background-image: linear-gradient(to top, #dad4bb, transparent) !important; }
+        .light-mode .bg-black\\/70 { background-color: #efeedd !important; }
+        .light-mode .bg-white\\/40 { background-color: rgba(255,255,255,0.4) !important; }
       `}} />
       {/* MODAL GESTOR DE SIMULADOS (GLOBAL) */}
       <AnimatePresence>
