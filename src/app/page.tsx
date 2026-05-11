@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, BookOpen, Activity, Database, ShieldAlert, Cpu, 
-  Crosshair, Zap, TrendingUp, ChevronRight, Server
+  Crosshair, Zap, TrendingUp, ChevronRight, Server, Sun, Moon
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -52,7 +52,7 @@ const MODULES = [
 
 const SAO_ITEMS = [
   { name: 'PERFIL', icon: User },
-  { name: 'CONFIG.', icon: Server }
+  { name: 'TEMA', icon: Sun }
 ];
 
 export interface UserProfile {
@@ -81,6 +81,8 @@ interface LayoutProps {
   setSimulationQuestions: (ids: string[] | null, title?: string, subject?: string, id?: string) => void;
   questionCount: number;
   onOpenSimulationManager: () => void;
+  theme: 'dark' | 'light';
+  toggleTheme: () => void;
 }
 
 // ==========================================
@@ -158,7 +160,7 @@ const DashboardContent = ({ userProfile, activeColor, questionCount }: { userPro
 // ==========================================
 // DESKTOP LAYOUT (PC Clássico)
 // ==========================================
-const DesktopLayout = ({ activeMod, setActiveMod, tab, setTab, isAdmin, userProfile, onOpenProfile, simulationQuestions, simulationTitle, simulationSubject, simulationId, setSimulationQuestions, questionCount, onOpenSimulationManager }: LayoutProps) => {
+const DesktopLayout = ({ activeMod, setActiveMod, tab, setTab, isAdmin, userProfile, onOpenProfile, simulationQuestions, simulationTitle, simulationSubject, simulationId, setSimulationQuestions, questionCount, onOpenSimulationManager, theme, toggleTheme }: LayoutProps) => {
   const [saoCoreOpen, setSaoCoreOpen] = useState(false);
   const activeColor = MODULES.find(m => m.id === activeMod)?.color || 'cyan';
 
@@ -275,9 +277,13 @@ const DesktopLayout = ({ activeMod, setActiveMod, tab, setTab, isAdmin, userProf
         <AnimatePresence>
           {saoCoreOpen && SAO_ITEMS.map((item, i) => {
             const angle = Math.PI + (i * (0.5 * Math.PI)) / Math.max(SAO_ITEMS.length - 1, 1);
+            const Icon = item.name === 'TEMA' ? (theme === 'dark' ? Moon : Sun) : item.icon;
             return (
               <motion.div key={item.name} initial={{ x: 0, y: 0, opacity: 0, scale: 0 }} animate={{ x: Math.cos(angle) * 100, y: -Math.sin(angle) * 100, opacity: 1, scale: 1 }} exit={{ x: 0, y: 0, opacity: 0, scale: 0 }} className="absolute top-0 left-0 z-0">
-                <div onClick={item.name === 'PERFIL' ? onOpenProfile : undefined} className="w-14 h-14 rounded-full bg-black/90 border border-cyan-500/50 flex flex-col items-center justify-center text-[8px] cursor-pointer shadow-[0_0_15px_rgba(34,211,238,0.4)] hover:bg-cyan-900/80 hover:scale-110 transition-all"><item.icon className="w-4 h-4 text-cyan-300" />{item.name}</div>
+                <div onClick={item.name === 'PERFIL' ? onOpenProfile : item.name === 'TEMA' ? toggleTheme : undefined} className={`w-14 h-14 rounded-full border flex flex-col items-center justify-center text-[8px] cursor-pointer shadow-lg hover:scale-110 transition-all ${theme === 'dark' ? 'bg-black/90 border-cyan-500/50 text-cyan-300' : 'bg-white/90 border-[#8b8675]/30 text-[#454138]'}`}>
+                  <Icon className="w-4 h-4 mb-1" />
+                  {item.name}
+                </div>
               </motion.div>
             )
           })}
@@ -301,7 +307,7 @@ const DesktopLayout = ({ activeMod, setActiveMod, tab, setTab, isAdmin, userProf
 // ==========================================
 // TABLET LAYOUT (Otimizado, Menus no Topo)
 // ==========================================
-const TabletLayout = ({ activeMod, setActiveMod, tab, setTab, isAdmin, userProfile, onOpenProfile, simulationQuestions, simulationTitle, simulationSubject, simulationId, setSimulationQuestions, questionCount, onOpenSimulationManager }: LayoutProps) => {
+const TabletLayout = ({ activeMod, setActiveMod, tab, setTab, isAdmin, userProfile, onOpenProfile, simulationQuestions, simulationTitle, simulationSubject, simulationId, setSimulationQuestions, questionCount, onOpenSimulationManager, theme, toggleTheme }: LayoutProps) => {
   const [saoCoreOpen, setSaoCoreOpen] = useState(false);
   const activeColor = MODULES.find(m => m.id === activeMod)?.color || 'cyan';
 
@@ -329,9 +335,12 @@ const TabletLayout = ({ activeMod, setActiveMod, tab, setTab, isAdmin, userProfi
             <AnimatePresence>
               {saoCoreOpen && SAO_ITEMS.map((item, i) => {
                 const angle = Math.PI + (i * Math.PI) / 2;
+                const Icon = item.name === 'TEMA' ? (theme === 'dark' ? Moon : Sun) : item.icon;
                 return (
                   <motion.div key={item.name} initial={{ opacity: 0, scale: 0 }} animate={{ x: Math.cos(angle) * 70, y: -Math.sin(angle) * 70, opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0 }} className="absolute top-0 left-0">
-                    <div onClick={item.name === 'PERFIL' ? onOpenProfile : undefined} className="w-10 h-10 rounded-full bg-black/90 border border-cyan-500/50 flex flex-col items-center justify-center text-[6px] shadow-[0_0_10px_rgba(34,211,238,0.4)] cursor-pointer"><item.icon className="w-3 h-3 text-cyan-300" /></div>
+                    <div onClick={item.name === 'PERFIL' ? onOpenProfile : item.name === 'TEMA' ? toggleTheme : undefined} className={`w-10 h-10 rounded-full border flex flex-col items-center justify-center text-[6px] shadow-md cursor-pointer transition-all ${theme === 'dark' ? 'bg-black/90 border-cyan-500/50 text-cyan-300' : 'bg-white/90 border-[#8b8675]/30 text-[#454138]'}`}>
+                      <Icon className="w-3 h-3" />
+                    </div>
                   </motion.div>
                 )
               })}
@@ -435,7 +444,7 @@ const TabletLayout = ({ activeMod, setActiveMod, tab, setTab, isAdmin, userProfi
 // ==========================================
 // MOBILE LAYOUT (App Nativo Sci-Fi)
 // ==========================================
-const MobileLayout = ({ activeMod, setActiveMod, tab, setTab, isAdmin, userProfile, onOpenProfile, simulationQuestions, simulationTitle, simulationSubject, simulationId, setSimulationQuestions, questionCount, onOpenSimulationManager }: LayoutProps) => {
+const MobileLayout = ({ activeMod, setActiveMod, tab, setTab, isAdmin, userProfile, onOpenProfile, simulationQuestions, simulationTitle, simulationSubject, simulationId, setSimulationQuestions, questionCount, onOpenSimulationManager, theme, toggleTheme }: LayoutProps) => {
   const [saoCoreOpen, setSaoCoreOpen] = useState(false);
   const activeColor = MODULES.find(m => m.id === activeMod)?.color || 'cyan';
 
@@ -463,9 +472,12 @@ const MobileLayout = ({ activeMod, setActiveMod, tab, setTab, isAdmin, userProfi
           <AnimatePresence>
             {saoCoreOpen && SAO_ITEMS.map((item, i) => {
               const angle = Math.PI + (i * Math.PI) / 2;
+              const Icon = item.name === 'TEMA' ? (theme === 'dark' ? Moon : Sun) : item.icon;
               return (
                 <motion.div key={item.name} initial={{ opacity: 0, scale: 0 }} animate={{ x: Math.cos(angle) * 50, y: -Math.sin(angle) * 50, opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0 }} className="absolute top-0 left-0">
-                  <div onClick={item.name === 'PERFIL' ? onOpenProfile : undefined} className="w-8 h-8 rounded-full bg-cyan-950 border border-cyan-500/50 flex items-center justify-center shadow-[0_0_10px_rgba(34,211,238,0.4)] cursor-pointer"><item.icon className="w-3 h-3 text-cyan-300" /></div>
+                  <div onClick={item.name === 'PERFIL' ? onOpenProfile : item.name === 'TEMA' ? toggleTheme : undefined} className={`w-8 h-8 rounded-full border flex items-center justify-center shadow-md cursor-pointer transition-all ${theme === 'dark' ? 'bg-cyan-950 border-cyan-500/50 text-cyan-300' : 'bg-white border-[#8b8675]/30 text-[#454138]'}`}>
+                    <Icon className="w-3 h-3" />
+                  </div>
                 </motion.div>
               )
             })}
@@ -583,6 +595,7 @@ export default function UiusasDefinitive() {
   const [simulationId, setSimulationId] = useState<string | undefined>();
   const [questionCount, setQuestionCount] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   
   const [isAdmin, setIsAdmin] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -648,7 +661,7 @@ export default function UiusasDefinitive() {
   };
 
   return (
-    <div className="w-screen h-screen bg-black overflow-hidden flex flex-col font-mono text-white relative">
+    <div className={`w-screen h-screen overflow-hidden flex flex-col font-mono relative transition-colors duration-700 ${theme === 'dark' ? 'bg-black text-white' : 'bg-[#e2e2d5] text-[#454138] light-mode'}`}>
         
       {/* FUNDO ANIMADO */}
       <motion.div animate={{ x: ["-50%", "-30%", "-60%", "-50%"], y: ["-50%", "-20%", "-70%", "-50%"] }} transition={{ repeat: Infinity, duration: 20, ease: "linear" }} className="absolute top-0 left-0 w-[150%] h-[150%] bg-fuchsia-600/30 rounded-full blur-[100px] pointer-events-none" />
@@ -665,9 +678,9 @@ export default function UiusasDefinitive() {
       {/* RENDERIZAÇÃO AUTOMÁTICA */}
       <AnimatePresence mode="wait">
         <motion.div key={device} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="w-full h-full absolute inset-0">
-          {device === 'desktop' && <DesktopLayout activeMod={activeMod} setActiveMod={setActiveMod} tab={tab} setTab={setTab} isAdmin={isAdmin} userProfile={userProfile} onOpenProfile={() => router.push('/perfil')} simulationQuestions={simulationQuestions} simulationTitle={simulationTitle} simulationSubject={simulationSubject} simulationId={simulationId} setSimulationQuestions={(ids, title, sub, id) => { setSimulationQuestions(ids); setSimulationTitle(title); setSimulationSubject(sub); setSimulationId(id); }} questionCount={questionCount} onOpenSimulationManager={() => setShowSimulationManager(true)} />}
-          {device === 'tablet' && <TabletLayout activeMod={activeMod} setActiveMod={setActiveMod} tab={tab} setTab={setTab} isAdmin={isAdmin} userProfile={userProfile} onOpenProfile={() => router.push('/perfil')} simulationQuestions={simulationQuestions} simulationTitle={simulationTitle} simulationSubject={simulationSubject} simulationId={simulationId} setSimulationQuestions={(ids, title, sub, id) => { setSimulationQuestions(ids); setSimulationTitle(title); setSimulationSubject(sub); setSimulationId(id); }} questionCount={questionCount} onOpenSimulationManager={() => setShowSimulationManager(true)} />}
-          {device === 'mobile' && <MobileLayout activeMod={activeMod} setActiveMod={setActiveMod} tab={tab} setTab={setTab} isAdmin={isAdmin} userProfile={userProfile} onOpenProfile={() => router.push('/perfil')} simulationQuestions={simulationQuestions} simulationTitle={simulationTitle} simulationSubject={simulationSubject} simulationId={simulationId} setSimulationQuestions={(ids, title, sub, id) => { setSimulationQuestions(ids); setSimulationTitle(title); setSimulationSubject(sub); setSimulationId(id); }} questionCount={questionCount} onOpenSimulationManager={() => setShowSimulationManager(true)} />}
+          {device === 'desktop' && <DesktopLayout {...layoutProps} />}
+          {device === 'tablet' && <TabletLayout {...layoutProps} />}
+          {device === 'mobile' && <MobileLayout {...layoutProps} />}
         </motion.div>
       </AnimatePresence>
 
@@ -690,6 +703,15 @@ export default function UiusasDefinitive() {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Light Mode Overrides */
+        .light-mode .bg-black, .light-mode .bg-black\\/90, .light-mode .bg-black\\/80, .light-mode .bg-black\\/60, .light-mode .bg-black\\/40, .light-mode .bg-black\\/50 { background-color: rgba(240, 240, 230, 0.8) !important; backdrop-filter: blur(12px); }
+        .light-mode .border-white\\/10, .light-mode .border-white\\/5, .light-mode .border-zinc-800 { border-color: rgba(69, 65, 56, 0.15) !important; }
+        .light-mode .text-zinc-400, .light-mode .text-zinc-500, .light-mode .text-zinc-600 { color: #8b8675 !important; }
+        .light-mode .text-white { color: #454138 !important; }
+        .light-mode .bg-white\\/5 { background-color: rgba(69, 65, 56, 0.05) !important; }
+        .light-mode .bg-white\\/10 { background-color: rgba(69, 65, 56, 0.1) !important; }
+        .light-mode .shadow-\\[0_0_20px_rgba\\(0\\,0\\,0\\,0\\.5\\)\\] { shadow: 0 4px 20px rgba(139, 134, 117, 0.2) !important; }
       `}} />
       {/* MODAL GESTOR DE SIMULADOS (GLOBAL) */}
       <AnimatePresence>
