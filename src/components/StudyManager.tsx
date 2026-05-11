@@ -27,41 +27,56 @@ export function StudyManager({ userProfile, type, onStartSimulation }: StudyMana
   const supabase = createClient();
 
   useEffect(() => {
-    if (userProfile?.id) {
-      fetchItems();
-    }
+    fetchItems();
   }, [userProfile, type]);
 
   const fetchItems = async () => {
     setLoading(true);
-    const table = type === 'ERRORS' ? 'quiz_user_errors' : 'quiz_user_reviews';
     
-    // Buscar questões individuais
-    const { data: qData } = await supabase
-      .from(table)
-      .select(`
-        question_id,
-        quiz_questions (id, subject, topic, question_text, difficulty)
-      `)
-      .eq('user_id', userProfile?.id);
-
-    if (qData) {
-      const formatted = qData.map((d: any) => d.quiz_questions).filter(Boolean);
-      setItems(formatted);
-    }
-
-    // Se for REVIEWS, buscar simulados não concluídos
-    if (type === 'REVIEWS') {
-      const { data: sData } = await supabase
-        .from('quiz_simulation_progress')
-        .select(`
-          *,
-          quiz_simulations (title, subject)
-        `)
-        .eq('user_id', userProfile?.id)
-        .eq('completed', false);
+    if (userProfile?.id) {
+      const table = type === 'ERRORS' ? 'quiz_user_errors' : 'quiz_user_reviews';
       
-      if (sData) setIncompleteSimulations(sData);
+      // Buscar questões individuais
+      const { data: qData } = await supabase
+        .from(table)
+        .select(`
+          question_id,
+          quiz_questions (id, subject, topic, question_text, difficulty)
+        `)
+        .eq('user_id', userProfile?.id);
+
+      if (qData) {
+        const formatted = qData.map((d: any) => d.quiz_questions).filter(Boolean);
+        setItems(formatted);
+      }
+
+      // Se for REVIEWS, buscar simulados não concluídos
+      if (type === 'REVIEWS') {
+        const { data: sData } = await supabase
+          .from('quiz_simulation_progress')
+          .select(`
+            *,
+            quiz_simulations (title, subject)
+          `)
+          .eq('user_id', userProfile?.id)
+          .eq('completed', false);
+        
+        if (sData) setIncompleteSimulations(sData);
+      }
+    } else {
+      // GUEST MODE
+      const storageKey = type === 'ERRORS' ? 'uiusas_guest_errors' : 'uiusas_guest_reviews';
+      const localIdsRaw = localStorage.getItem(storageKey);
+      const localIds: string[] = localIdsRaw ? JSON.parse(localIdsRaw) : [];
+      
+      if (localIds.length > 0) {
+        const { data: qData } = await supabase
+          .from('quiz_questions')
+          .select('id, subject, topic, question_text, difficulty')
+          .in('id', localIds);
+          
+        if (qData) setItems(qData);
+      }
     }
 
     setLoading(false);

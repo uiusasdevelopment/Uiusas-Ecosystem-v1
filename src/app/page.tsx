@@ -92,13 +92,22 @@ const DashboardContent = ({ userProfile, activeColor, questionCount }: { userPro
   const isGuest = !userProfile;
   const name = userProfile ? userProfile.display_name.toUpperCase() : 'VISITANTE';
   const activeModules = userProfile?.active_subjects || [];
+  
+  const [guestStats, setGuestStats] = useState({ correct: 0, total: 0, total_points: 0 });
+
+  useEffect(() => {
+    if (isGuest) {
+      const stats = localStorage.getItem('uiusas_guest_stats');
+      if (stats) setGuestStats(JSON.parse(stats));
+    }
+  }, [isGuest]);
 
   return (
     <div className="flex flex-col gap-6 w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Banner de Boas-Vindas */}
       <div className="relative border border-white/10 bg-black/40 p-6 md:p-8 overflow-hidden shadow-[0_0_20px_rgba(0,0,0,0.5)]">
         <div className={`absolute top-0 left-0 w-1 h-full bg-${activeColor === 'cyan' ? 'cyan-500' : activeColor === 'fuchsia' ? 'fuchsia-500' : 'emerald-500'}`} />
-        <h2 className="text-[10px] text-zinc-400 tracking-widest mb-1">STATUS DA CONEXÃO: <span className="text-emerald-400 font-bold">ESTÁVEL</span></h2>
+        <h2 className="text-[10px] text-zinc-400 tracking-widest mb-1">STATUS DA CONEXÃO: <span className={isGuest ? "text-amber-400 font-bold" : "text-emerald-400 font-bold"}>{isGuest ? "MODO VISITANTE" : "ESTÁVEL"}</span></h2>
         <h1 className="text-2xl md:text-3xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-400">
           BEM-VINDO, <span className={`text-${activeColor === 'cyan' ? 'cyan-400' : activeColor === 'fuchsia' ? 'fuchsia-400' : 'emerald-400'} drop-shadow-[0_0_10px_currentColor]`}>{name}</span>
         </h1>
@@ -108,30 +117,36 @@ const DashboardContent = ({ userProfile, activeColor, questionCount }: { userPro
               <ShieldAlert className="w-3 h-3" /> ATENÇÃO
             </h3>
             <p className="text-xs text-zinc-400 leading-relaxed mb-4">
-              Você está operando em Modo Espectador. Seus dados de simulação e patentes não estão sendo salvos no banco de dados central. 
+              Você está operando em Modo Espectador. Seus dados estão sendo salvos localmente no navegador. Para sincronizar permanentemente, aliste-se.
             </p>
-            <Link href="/login" className="px-4 py-2 bg-fuchsia-900/40 border border-fuchsia-500 text-fuchsia-300 text-[10px] tracking-widest font-bold hover:bg-fuchsia-800 hover:text-white transition-colors inline-block">
-              FAZER ALISTAMENTO / LOGIN
-            </Link>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/login" className="px-4 py-2 bg-fuchsia-900/40 border border-fuchsia-500 text-fuchsia-300 text-[10px] tracking-widest font-bold hover:bg-fuchsia-800 hover:text-white transition-colors inline-block">
+                FAZER ALISTAMENTO / LOGIN
+              </Link>
+            </div>
           </div>
         )}
       </div>
 
       {/* Grid de Ações Rápidas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Link href={isGuest ? "/login" : "/perfil"} className={`group relative p-6 border border-white/10 bg-white/5 hover:bg-${activeColor === 'cyan' ? 'cyan-950/40' : activeColor === 'fuchsia' ? 'fuchsia-950/40' : 'emerald-950/40'} hover:border-${activeColor === 'cyan' ? 'cyan-500/50' : activeColor === 'fuchsia' ? 'fuchsia-500/50' : 'emerald-500/50'} transition-all cursor-pointer flex flex-col items-center justify-center text-center`}>
+        <div className={`group relative p-6 border border-white/10 bg-white/5 hover:bg-${activeColor === 'cyan' ? 'cyan-950/40' : activeColor === 'fuchsia' ? 'fuchsia-950/40' : 'emerald-950/40'} hover:border-${activeColor === 'cyan' ? 'cyan-500/50' : activeColor === 'fuchsia' ? 'fuchsia-500/50' : 'emerald-500/50'} transition-all cursor-pointer flex flex-col items-center justify-center text-center`}>
           <div className={`absolute inset-0 bg-gradient-to-t from-${activeColor === 'cyan' ? 'cyan-500/10' : activeColor === 'fuchsia' ? 'fuchsia-500/10' : 'emerald-500/10'} to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none`} />
           <TargetIcon className={`w-8 h-8 mb-4 ${activeColor === 'cyan' ? 'text-cyan-400' : activeColor === 'fuchsia' ? 'text-fuchsia-400' : 'text-emerald-400'} group-hover:scale-110 transition-transform`} />
-          <span className="text-sm font-bold tracking-widest mb-1 text-white">INICIAR MISSÃO</span>
-          <span className="text-[10px] text-zinc-500 tracking-widest">GERADOR DE SIMULADOS</span>
-        </Link>
+          <span className="text-sm font-bold tracking-widest mb-1 text-white">TAXA DE PRECISÃO</span>
+          <span className="text-[10px] text-zinc-500 tracking-widest uppercase">
+            {isGuest ? `${guestStats.correct} ACERTOS / ${guestStats.total} TOTAL` : 'DADOS SINCRONIZADOS'}
+          </span>
+        </div>
         
-        <Link href={isGuest ? "/login" : "/perfil"} className={`group relative p-6 border border-white/10 bg-white/5 hover:bg-${activeColor === 'cyan' ? 'cyan-950/40' : activeColor === 'fuchsia' ? 'fuchsia-950/40' : 'emerald-950/40'} hover:border-${activeColor === 'cyan' ? 'cyan-500/50' : activeColor === 'fuchsia' ? 'fuchsia-500/50' : 'emerald-500/50'} transition-all cursor-pointer flex flex-col items-center justify-center text-center`}>
+        <div className={`group relative p-6 border border-white/10 bg-white/5 hover:bg-${activeColor === 'cyan' ? 'cyan-950/40' : activeColor === 'fuchsia' ? 'fuchsia-950/40' : 'emerald-950/40'} hover:border-${activeColor === 'cyan' ? 'cyan-500/50' : activeColor === 'fuchsia' ? 'fuchsia-500/50' : 'emerald-500/50'} transition-all cursor-pointer flex flex-col items-center justify-center text-center`}>
           <div className={`absolute inset-0 bg-gradient-to-t from-${activeColor === 'cyan' ? 'cyan-500/10' : activeColor === 'fuchsia' ? 'fuchsia-500/10' : 'emerald-500/10'} to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none`} />
-          <BookOpen className={`w-8 h-8 mb-4 ${activeColor === 'cyan' ? 'text-cyan-400' : activeColor === 'fuchsia' ? 'text-fuchsia-400' : 'text-emerald-400'} group-hover:scale-110 transition-transform`} />
-          <span className="text-sm font-bold tracking-widest mb-1 text-white">ACESSAR ACERVO</span>
-          <span className="text-[10px] text-zinc-500 tracking-widest">BIBLIOTECA DE DADOS</span>
-        </Link>
+          <Zap className={`w-8 h-8 mb-4 ${activeColor === 'cyan' ? 'text-cyan-400' : activeColor === 'fuchsia' ? 'text-fuchsia-400' : 'text-emerald-400'} group-hover:scale-110 transition-transform`} />
+          <span className="text-sm font-bold tracking-widest mb-1 text-white">PATENTE (PONTOS)</span>
+          <span className="text-[10px] text-zinc-500 tracking-widest">
+            {isGuest ? `${guestStats.total_points} PTS ACUMULADOS` : `${userProfile?.total_points || 0} PTS ACUMULADOS`}
+          </span>
+        </div>
       </div>
 
       {/* Info extra */}
@@ -141,7 +156,7 @@ const DashboardContent = ({ userProfile, activeColor, questionCount }: { userPro
           <div className="flex flex-col">
             <span className="text-[10px] text-zinc-500 tracking-widest">MÓDULOS ATIVOS</span>
             <span className="text-xs font-bold text-white tracking-widest uppercase">
-              {activeModules.length > 0 ? activeModules.join(' // ') : 'NENHUM MÓDULO CONFIGURADO'}
+              {activeModules.length > 0 ? activeModules.join(' // ') : 'MODO TREINAMENTO LIVRE'}
             </span>
           </div>
         </div>

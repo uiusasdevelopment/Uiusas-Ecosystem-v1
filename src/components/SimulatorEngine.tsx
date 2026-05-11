@@ -204,6 +204,30 @@ export function SimulatorEngine({
           last_study_at: new Date().toISOString()
         }).eq('id', userProfile.id);
       }
+    } else {
+      // GUEST MODE: Local Persistence
+      const correctCount = Object.values(results).filter(Boolean).length;
+      const wrongIds = questions
+        .filter((_, idx) => results[idx] === false)
+        .map(q => q.id);
+
+      // 1. Save general stats
+      const guestStatsRaw = localStorage.getItem('uiusas_guest_stats');
+      const guestStats = guestStatsRaw ? JSON.parse(guestStatsRaw) : { total_points: 0, sessions: 0, correct: 0, total: 0 };
+      
+      guestStats.correct += correctCount;
+      guestStats.total += questions.length;
+      guestStats.sessions += 1;
+      guestStats.total_points += (correctCount * 10);
+      localStorage.setItem('uiusas_guest_stats', JSON.stringify(guestStats));
+
+      // 2. Save errors
+      if (wrongIds.length > 0) {
+        const guestErrorsRaw = localStorage.getItem('uiusas_guest_errors');
+        let guestErrors: string[] = guestErrorsRaw ? JSON.parse(guestErrorsRaw) : [];
+        const newErrors = [...new Set([...guestErrors, ...wrongIds])];
+        localStorage.setItem('uiusas_guest_errors', JSON.stringify(newErrors));
+      }
     }
   };
 
