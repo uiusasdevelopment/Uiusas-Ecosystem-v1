@@ -761,14 +761,19 @@ export default function UiusasDefinitive() {
         .light-mode .border-white\\/10, .light-mode .border-white\\/5 { border-color: rgba(0, 0, 0, 0.1) !important; }
         .light-mode .bg-black\\/60 .border-white\\/10 { border-color: rgba(255, 255, 255, 0.1) !important; }
 
-        .light-mode .text-fuchsia-400 { color: #c084fc !important; }
-        .light-mode .text-emerald-400 { color: #4ade80 !important; }
-        .light-mode .text-cyan-400 { color: #22d3ee !important; }
+        .light-mode .text-fuchsia-400 { color: #9d174d !important; text-shadow: none !important; }
+        .light-mode .text-emerald-400 { color: #065f46 !important; text-shadow: none !important; }
+        .light-mode .text-cyan-400 { color: #155e75 !important; text-shadow: none !important; }
+        .light-mode .text-cyan-300 { color: #164e63 !important; text-shadow: none !important; }
         
         .light-mode .bg-cyan-950\\/90 { background-color: #454138 !important; }
         .light-mode .bg-gradient-to-t { background-image: linear-gradient(to top, #e2e2d5, transparent) !important; }
         .light-mode .from-white { --tw-gradient-from: #454138 !important; }
         .light-mode .to-cyan-200 { --tw-gradient-to: #8b8675 !important; }
+        
+        /* Sidebar/Dashboard tab consistency */
+        .light-mode .bg-cyan-500\\/20 { background-color: rgba(21, 94, 117, 0.2) !important; }
+        .light-mode .shadow-\\[0_0_10px_rgba\\(34\\,211\\,238\\,0\\.5\\)\\] { box-shadow: 0 0 10px rgba(21, 94, 117, 0.3) !important; }
       `}} />
       {/* MODAL GESTOR DE SIMULADOS (GLOBAL) */}
       <AnimatePresence>
