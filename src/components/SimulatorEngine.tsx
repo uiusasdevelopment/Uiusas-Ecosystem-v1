@@ -69,23 +69,34 @@ export function SimulatorEngine({
 
   useEffect(() => {
     fetchQuestions();
-    if (simulationId && userProfile?.id) {
+    if (simulationId) {
       checkExistingProgress();
     }
   }, [questionIds, simulationId, userProfile?.id]);
 
   const checkExistingProgress = async () => {
     setCheckingProgress(true);
-    const { data } = await supabase
-      .from('quiz_simulation_progress')
-      .select('*')
-      .eq('user_id', userProfile?.id)
-      .eq('simulation_id', simulationId)
-      .eq('completed', false)
-      .single();
-    
-    if (data) {
-      setSavedProgress(data);
+    if (userProfile?.id) {
+      const { data } = await supabase
+        .from('quiz_simulation_progress')
+        .select('*')
+        .eq('user_id', userProfile?.id)
+        .eq('simulation_id', simulationId)
+        .eq('completed', false)
+        .single();
+      
+      if (data) {
+        setSavedProgress(data);
+      }
+    } else {
+      // GUEST MODE: Check Local Storage
+      const localProg = localStorage.getItem(`uiusas_guest_prog_${simulationId}`);
+      if (localProg) {
+        const data = JSON.parse(localProg);
+        if (!data.completed) {
+          setSavedProgress(data);
+        }
+      }
     }
     setCheckingProgress(false);
   };
@@ -102,24 +113,41 @@ export function SimulatorEngine({
   };
 
   const saveProgress = async (completed = false) => {
-    if (!simulationId || !userProfile?.id || phase !== 'PLAYING') return;
+    if (!simulationId || phase !== 'PLAYING') return;
 
     const correctCount = Object.values(results).filter(Boolean).length;
     const scorePerc = (correctCount / questions.length) * 100;
 
-    await supabase.from('quiz_simulation_progress').upsert({
-      user_id: userProfile.id,
-      simulation_id: simulationId,
-      current_index: currentIndex,
-      answers,
-      results,
-      time_elapsed: timeElapsed,
-      lives,
-      mode,
-      completed,
-      score_percentage: scorePerc,
-      updated_at: new Date().toISOString()
-    }, { onConflict: 'user_id,simulation_id' });
+    if (userProfile?.id) {
+      await supabase.from('quiz_simulation_progress').upsert({
+        user_id: userProfile.id,
+        simulation_id: simulationId,
+        current_index: currentIndex,
+        answers,
+        results,
+        time_elapsed: timeElapsed,
+        lives,
+        mode,
+        completed,
+        score_percentage: scorePerc,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id,simulation_id' });
+    } else {
+      // GUEST PROGRESS PERSISTENCE
+      const guestProgress = {
+        simulation_id: simulationId,
+        current_index: currentIndex,
+        answers,
+        results,
+        time_elapsed: timeElapsed,
+        lives,
+        mode,
+        completed,
+        score_percentage: scorePerc,
+        updated_at: new Date().toISOString()
+      };
+      localStorage.setItem(`uiusas_guest_prog_${simulationId}`, JSON.stringify(guestProgress));
+    }
   };
 
   const fetchQuestions = async () => {
@@ -220,6 +248,9 @@ export function SimulatorEngine({
       guestStats.sessions += 1;
       guestStats.total_points += (correctCount * 10);
       localStorage.setItem('uiusas_guest_stats', JSON.stringify(guestStats));
+
+      // Limpar progresso temporário deste simulado
+      localStorage.removeItem(`uiusas_guest_prog_${simulationId}`);
 
       // 2. Save errors
       if (wrongIds.length > 0) {

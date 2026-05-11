@@ -52,7 +52,9 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const isGuest = request.cookies.has('uiusas_guest')
+  // Verificação de visitante mais robusta
+  const guestCookie = request.cookies.get('uiusas_guest')
+  const isGuest = guestCookie?.value === 'true'
 
   // Se não está logado E não é convidado, barrado na porta
   if (!user && !isGuest && !request.nextUrl.pathname.startsWith('/login') && !request.nextUrl.pathname.startsWith('/auth')) {

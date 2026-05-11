@@ -49,7 +49,11 @@ export default function LoginPage({
           </button>
 
           <button
-            formAction={continueAsGuest}
+            type="button"
+            onClick={() => {
+              document.cookie = "uiusas_guest=true; path=/; max-age=" + (60 * 60 * 24 * 30);
+              window.location.href = '/';
+            }}
             className="w-full bg-black/60 backdrop-blur-xl border border-zinc-800 text-zinc-400 py-4 text-xs tracking-widest font-bold hover:bg-zinc-900 hover:text-white transition-all flex items-center justify-center gap-3"
           >
             <Globe className="w-4 h-4" />
