@@ -144,7 +144,7 @@ const DashboardContent = ({ userProfile, activeColor, questionCount }: { userPro
           <Zap className={`w-8 h-8 mb-4 ${activeColor === 'cyan' ? 'text-cyan-400' : activeColor === 'fuchsia' ? 'text-fuchsia-400' : 'text-emerald-400'} group-hover:scale-110 transition-transform`} />
           <span className="text-sm font-bold tracking-widest mb-1 text-white">PATENTE (PONTOS)</span>
           <span className="text-[10px] text-zinc-500 tracking-widest">
-            {isGuest ? `${guestStats.total_points} PTS ACUMULADOS` : `${userProfile?.total_points || 0} PTS ACUMULADOS`}
+            {isGuest ? `${guestStats?.total_points || 0} PTS ACUMULADOS` : `${userProfile?.total_points || 0} PTS ACUMULADOS`}
           </span>
         </div>
       </div>

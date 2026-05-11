@@ -90,7 +90,7 @@ export function StudyManager({ userProfile, type, onStartSimulation }: StudyMana
               if (prog && !prog.completed) {
                 // Tentar buscar detalhes do simulado no Supabase para exibir título bonito
                 let simDetail = null;
-                if (prog.simulation_id && !prog.simulation_id.startsWith('custom_')) {
+                if (prog.simulation_id && typeof prog.simulation_id === 'string' && !prog.simulation_id.startsWith('custom_')) {
                   const { data } = await supabase
                     .from('quiz_simulations')
                     .select('title, subject')
