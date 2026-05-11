@@ -612,16 +612,44 @@ export default function UiusasDefinitive() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
-  // Carregar tema do localStorage
+  // Carregar tema e estado de simulado do localStorage
   useEffect(() => {
     const savedTheme = localStorage.getItem('uiusas_theme') as 'dark' | 'light';
     if (savedTheme) setTheme(savedTheme);
-  }, []);
+
+    // Recuperar simulado ativo se for visitante
+    const savedSim = localStorage.getItem('uiusas_guest_active_sim');
+    if (savedSim && !userProfile) {
+      const data = JSON.parse(savedSim);
+      setSimulationQuestions(data.ids);
+      setSimulationTitle(data.title);
+      setSimulationSubject(data.subject);
+      setSimulationId(data.id);
+      setTab(data.tab || 3);
+    }
+  }, [userProfile]);
 
   // Salvar tema no localStorage
   useEffect(() => {
     localStorage.setItem('uiusas_theme', theme);
   }, [theme]);
+
+  // Salvar estado de simulado para convidados
+  useEffect(() => {
+    if (!userProfile) {
+      if (simulationQuestions) {
+        localStorage.setItem('uiusas_guest_active_sim', JSON.stringify({
+          ids: simulationQuestions,
+          title: simulationTitle,
+          subject: simulationSubject,
+          id: simulationId,
+          tab: tab
+        }));
+      } else {
+        localStorage.removeItem('uiusas_guest_active_sim');
+      }
+    }
+  }, [simulationQuestions, simulationTitle, simulationSubject, simulationId, tab, userProfile]);
   
   const [isAdmin, setIsAdmin] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);

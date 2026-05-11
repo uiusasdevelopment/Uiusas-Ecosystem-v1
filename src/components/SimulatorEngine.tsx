@@ -112,6 +112,13 @@ export function SimulatorEngine({
     setPhase('PLAYING');
   };
 
+  // Auto-save effect
+  useEffect(() => {
+    if (phase === 'PLAYING' && questions.length > 0) {
+      saveProgress();
+    }
+  }, [currentIndex, answers, results, phase]);
+
   const saveProgress = async (completed = false) => {
     if (!simulationId || phase !== 'PLAYING') return;
 
@@ -136,6 +143,7 @@ export function SimulatorEngine({
       // GUEST PROGRESS PERSISTENCE
       const guestProgress = {
         simulation_id: simulationId,
+        question_ids: questions.map(q => q.id), // CRUCIAL PARA RETOMAR
         current_index: currentIndex,
         answers,
         results,

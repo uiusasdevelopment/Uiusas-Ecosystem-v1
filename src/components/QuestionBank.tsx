@@ -132,7 +132,8 @@ export function QuestionBank({ userProfile, isAdmin, onStartSimulation, onOpenSi
 
   const handleStartSelection = () => {
     if (selectedQuestions.size === 0) return;
-    onStartSimulation?.(Array.from(selectedQuestions), "Treinamento Personalizado", filterSubject !== 'ALL' ? filterSubject : "Múltiplas Matérias");
+    const customId = `custom_${Date.now()}`;
+    onStartSimulation?.(Array.from(selectedQuestions), "Treinamento Personalizado", filterSubject !== 'ALL' ? filterSubject : "Múltiplas Matérias", customId);
   };
 
   const deleteSelectedQuestions = async () => {

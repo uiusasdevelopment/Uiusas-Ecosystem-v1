@@ -77,6 +77,33 @@ export function StudyManager({ userProfile, type, onStartSimulation }: StudyMana
           
         if (qData) setItems(qData);
       }
+
+      // Se for REVIEWS, buscar simulados não concluídos no localStorage
+      if (type === 'REVIEWS') {
+        const guestSims: any[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key?.startsWith('uiusas_guest_prog_')) {
+            try {
+              const prog = JSON.parse(localStorage.getItem(key)!);
+              if (!prog.completed) {
+                // Tentar buscar detalhes do simulado no Supabase para exibir título bonito
+                const { data: simDetail } = await supabase
+                  .from('quiz_simulations')
+                  .select('title, subject')
+                  .eq('id', prog.simulation_id)
+                  .single();
+                
+                guestSims.push({
+                  ...prog,
+                  quiz_simulations: simDetail || { title: "Simulado Personalizado", subject: "Treino" }
+                });
+              }
+            } catch (e) { console.error("Erro parse guest prog", e); }
+          }
+        }
+        setIncompleteSimulations(guestSims);
+      }
     }
 
     setLoading(false);
@@ -85,32 +112,66 @@ export function StudyManager({ userProfile, type, onStartSimulation }: StudyMana
   const deleteProgress = async (simId: string) => {
     if (!confirm("Deseja apagar o progresso deste simulado?")) return;
     
-    const { error } = await supabase
-      .from('quiz_simulation_progress')
-      .delete()
-      .eq('user_id', userProfile?.id)
-      .eq('simulation_id', simId);
-    
-    if (!error) {
+    if (userProfile?.id) {
+      const { error } = await supabase
+        .from('quiz_simulation_progress')
+        .delete()
+        .eq('user_id', userProfile?.id)
+        .eq('simulation_id', simId);
+      
+      if (!error) {
+        setIncompleteSimulations(prev => prev.filter(s => s.simulation_id !== simId));
+      }
+    } else {
+      // GUEST MODE
+      localStorage.removeItem(`uiusas_guest_prog_${simId}`);
       setIncompleteSimulations(prev => prev.filter(s => s.simulation_id !== simId));
     }
   };
 
   const handleContinue = async (sim: any) => {
-    // Buscar os IDs das questões desse simulado
-    const { data } = await supabase
-      .from('quiz_simulation_questions')
-      .select('question_id')
-      .eq('simulation_id', sim.simulation_id)
-      .order('question_order', { ascending: true });
-    
-    if (data && data.length > 0) {
-      onStartSimulation(
-        data.map(d => d.question_id), 
-        sim.quiz_simulations?.title, 
-        sim.quiz_simulations?.subject, 
-        sim.simulation_id
-      );
+    if (userProfile?.id) {
+      // Buscar os IDs das questões desse simulado no Banco
+      const { data } = await supabase
+        .from('quiz_simulation_questions')
+        .select('question_id')
+        .eq('simulation_id', sim.simulation_id)
+        .order('question_order', { ascending: true });
+      
+      if (data && data.length > 0) {
+        onStartSimulation(
+          data.map(d => d.question_id), 
+          sim.quiz_simulations?.title, 
+          sim.quiz_simulations?.subject, 
+          sim.simulation_id
+        );
+      }
+    } else {
+      // GUEST MODE: Pegar IDs do objeto salvo (que agora incluímos)
+      if (sim.question_ids && sim.question_ids.length > 0) {
+        onStartSimulation(
+          sim.question_ids,
+          sim.quiz_simulations?.title,
+          sim.quiz_simulations?.subject,
+          sim.simulation_id
+        );
+      } else {
+        // Fallback para simulados oficiais se não tiver IDs salvos no objeto
+        const { data } = await supabase
+          .from('quiz_simulation_questions')
+          .select('question_id')
+          .eq('simulation_id', sim.simulation_id)
+          .order('question_order', { ascending: true });
+        
+        if (data && data.length > 0) {
+          onStartSimulation(
+            data.map(d => d.question_id), 
+            sim.quiz_simulations?.title, 
+            sim.quiz_simulations?.subject, 
+            sim.simulation_id
+          );
+        }
+      }
     }
   };
 
