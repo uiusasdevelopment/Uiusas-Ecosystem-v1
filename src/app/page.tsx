@@ -690,9 +690,13 @@ export default function UiusasDefinitive() {
     <div className={`w-screen h-screen overflow-hidden flex flex-col font-mono relative transition-colors duration-700 ${theme === 'dark' ? 'bg-black text-white' : 'bg-[#e2e2d5] text-[#454138] light-mode'}`}>
         
       {/* FUNDO ANIMADO */}
-      <motion.div animate={{ x: ["-50%", "-30%", "-60%", "-50%"], y: ["-50%", "-20%", "-70%", "-50%"] }} transition={{ repeat: Infinity, duration: 20, ease: "linear" }} className="absolute top-0 left-0 w-[150%] h-[150%] bg-fuchsia-600/30 rounded-full blur-[100px] pointer-events-none" />
-      <motion.div animate={{ x: ["10%", "30%", "-10%", "10%"], y: ["10%", "-10%", "30%", "10%"] }} transition={{ repeat: Infinity, duration: 25, ease: "linear" }} className="absolute bottom-0 right-0 w-[150%] h-[150%] bg-cyan-600/20 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute inset-0 pointer-events-none opacity-30" style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.5) 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
+      {theme === 'dark' && (
+        <>
+          <motion.div animate={{ x: ["-50%", "-30%", "-60%", "-50%"], y: ["-50%", "-20%", "-70%", "-50%"] }} transition={{ repeat: Infinity, duration: 20, ease: "linear" }} className="absolute top-0 left-0 w-[150%] h-[150%] bg-fuchsia-600/30 rounded-full blur-[100px] pointer-events-none" />
+          <motion.div animate={{ x: ["10%", "30%", "-10%", "10%"], y: ["10%", "-10%", "30%", "10%"] }} transition={{ repeat: Infinity, duration: 25, ease: "linear" }} className="absolute bottom-0 right-0 w-[150%] h-[150%] bg-cyan-600/20 rounded-full blur-[100px] pointer-events-none" />
+        </>
+      )}
+      <div className={`absolute inset-0 pointer-events-none ${theme === 'dark' ? 'opacity-30' : 'opacity-10'}`} style={{ backgroundImage: `radial-gradient(${theme === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.8)'} 1px, transparent 1px)`, backgroundSize: '24px 24px' }} />
       
       {device === 'desktop' && (
         <>
@@ -731,13 +735,21 @@ export default function UiusasDefinitive() {
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
         /* Light Mode Overrides */
-        .light-mode .bg-black, .light-mode .bg-black\\/90, .light-mode .bg-black\\/80, .light-mode .bg-black\\/60, .light-mode .bg-black\\/40, .light-mode .bg-black\\/50 { background-color: rgba(240, 240, 230, 0.8) !important; backdrop-filter: blur(12px); }
-        .light-mode .border-white\\/10, .light-mode .border-white\\/5, .light-mode .border-zinc-800 { border-color: rgba(69, 65, 56, 0.15) !important; }
-        .light-mode .text-zinc-400, .light-mode .text-zinc-500, .light-mode .text-zinc-600 { color: #8b8675 !important; }
-        .light-mode .text-white { color: #454138 !important; }
-        .light-mode .bg-white\\/5 { background-color: rgba(69, 65, 56, 0.05) !important; }
-        .light-mode .bg-white\\/10 { background-color: rgba(69, 65, 56, 0.1) !important; }
-        .light-mode .shadow-\\[0_0_20px_rgba\\(0\\,0\\,0\\,0\\.5\\)\\] { shadow: 0 4px 20px rgba(139, 134, 117, 0.2) !important; }
+        .light-mode .bg-black, .light-mode .bg-black\\/90, .light-mode .bg-black\\/80, .light-mode .bg-black\\/60, .light-mode .bg-black\\/40, .light-mode .bg-black\\/50 { background-color: rgba(220, 220, 205, 0.9) !important; backdrop-filter: blur(20px); }
+        .light-mode .border-white\\/10, .light-mode .border-white\\/5, .light-mode .border-zinc-800, .light-mode .border-cyan-500\\/50 { border-color: rgba(69, 65, 56, 0.2) !important; }
+        .light-mode .text-zinc-400, .light-mode .text-zinc-500, .light-mode .text-zinc-600, .light-mode .text-cyan-300 { color: #8b8675 !important; }
+        .light-mode .text-white, .light-mode .text-cyan-400 { color: #454138 !important; }
+        .light-mode .bg-white\\/5 { background-color: rgba(69, 65, 56, 0.08) !important; }
+        .light-mode .bg-white\\/10 { background-color: rgba(69, 65, 56, 0.12) !important; }
+        .light-mode .shadow-\\[0_0_20px_rgba\\(0\\,0\\,0\\,0\\.5\\)\\] { shadow: 0 10px 30px rgba(69, 65, 56, 0.1) !important; }
+        .light-mode .bg-cyan-500\\/20 { background-color: rgba(69, 65, 56, 0.1) !important; }
+        .light-mode .bg-cyan-950\\/90 { background-color: rgba(69, 65, 56, 0.15) !important; }
+        .light-mode .bg-cyan-900\\/30 { background-color: rgba(69, 65, 56, 0.1) !important; }
+        .light-mode .text-fuchsia-400 { color: #a66a7b !important; }
+        .light-mode .text-emerald-400 { color: #6a8c6a !important; }
+        .light-mode .from-white { --tw-gradient-from: #454138 !important; }
+        .light-mode .to-cyan-200 { --tw-gradient-to: #8b8675 !important; }
+        .light-mode .bg-gradient-to-t { background-image: linear-gradient(to top, rgba(220, 220, 205, 0.95), transparent) !important; }
       `}} />
       {/* MODAL GESTOR DE SIMULADOS (GLOBAL) */}
       <AnimatePresence>
