@@ -20,9 +20,10 @@ interface Question {
   topic: string;
   question_text: string;
   options: string[];
-  correct_answer: number;
+  correct_answer: string;
   difficulty: string;
   created_at: string;
+  type?: 'MULTIPLE_CHOICE' | 'TRUE_FALSE';
 }
 
 export function QuestionBank({ userProfile, isAdmin, onStartSimulation, onOpenSimulationManager }: QuestionBankProps) {
@@ -72,12 +73,22 @@ export function QuestionBank({ userProfile, isAdmin, onStartSimulation, onOpenSi
       try {
         const regex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
         const cols = lines[i].split(regex).map(col => col.replace(/^"|"$/g, '').trim());
-        if (cols.length >= 10) {
+        
+        // Validação mínima para evitar inserção nula
+        if (cols.length >= 9 && cols[8]) {
+          const typeCol = cols[12]?.toUpperCase();
+          const type = (typeCol === 'TRUE_FALSE' || typeCol === 'TRUE') ? 'TRUE_FALSE' : 'MULTIPLE_CHOICE';
+          
           newQuestions.push({
-            subject: cols[0], topic: cols[1], question_text: cols[2],
-            options: [cols[3], cols[4], cols[5], cols[6], cols[7]].filter(o => o && o.trim() !== ''),
-            correct_answer: parseInt(cols[8]), justification: cols[9] || '', difficulty: cols[10] || 'Média',
-            hint: cols[11] || ''
+            subject: cols[0], 
+            topic: cols[1], 
+            question_text: cols[2],
+            options: [cols[3], cols[4], cols[5], cols[6], cols[7]].filter(o => o !== undefined && (type === 'TRUE_FALSE' ? true : o.trim() !== '')),
+            correct_answer: cols[8], 
+            justification: cols[9] || '', 
+            difficulty: cols[10] || 'Média',
+            hint: cols[11] || '',
+            type: type
           });
         }
       } catch (err) { console.error(`Erro linha ${i}:`, err); }
@@ -471,6 +482,9 @@ export function QuestionBank({ userProfile, isAdmin, onStartSimulation, onOpenSi
 
                   {/* Tags */}
                   <div className="hidden lg:flex items-center gap-2 shrink-0">
+                    <span className={`text-[10px] font-bold tracking-wider px-3 py-1 rounded-lg border ${q.type === 'TRUE_FALSE' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20'}`}>
+                      {q.type === 'TRUE_FALSE' ? 'V / F' : 'MÚLTIPLA'}
+                    </span>
                     <span className="text-[10px] font-bold tracking-wider bg-white/[0.06] text-zinc-400 px-3 py-1 rounded-lg border border-white/[0.06]">
                       {q.topic}
                     </span>
@@ -529,18 +543,41 @@ export function QuestionBank({ userProfile, isAdmin, onStartSimulation, onOpenSi
                     >
                       <div className="px-5 pb-5 pt-1 border-t border-white/[0.04]">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3">
-                          {q.options.filter(o => o && o.trim() !== '').map((opt, i) => {
-                            const isCorrect = q.correct_answer === i;
-                            return (
-                              <div key={i} className={`flex items-start gap-3 text-xs p-3 rounded-xl border transition-all ${isRevealed && isCorrect ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-200' : 'border-white/[0.04] bg-white/[0.02] text-zinc-500'}`}>
-                                <span className={`font-bold shrink-0 mt-0.5 ${isRevealed && isCorrect ? 'text-emerald-400' : 'text-zinc-600'}`}>
-                                  {['A', 'B', 'C', 'D', 'E'][i]})
-                                </span> 
-                                <span className="leading-relaxed">{opt}</span>
-                                {isRevealed && isCorrect && <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />}
-                              </div>
-                            );
-                          })}
+                          {q.type === 'TRUE_FALSE' ? (
+                            // Renderização para Verdadeiro ou Falso
+                            q.options.filter(o => o && o.trim() !== '').map((opt, i) => {
+                              const correctVal = q.correct_answer?.[i] || '?';
+                              return (
+                                <div key={i} className={`flex items-start gap-3 text-xs p-3 rounded-xl border transition-all ${isRevealed ? 'border-amber-500/40 bg-amber-500/10 text-amber-200' : 'border-white/[0.04] bg-white/[0.02] text-zinc-500'}`}>
+                                  <div className="flex flex-col items-center gap-1 shrink-0 mt-0.5">
+                                    <span className="font-bold text-zinc-600">
+                                      {['I', 'II', 'III', 'IV', 'V'][i]}
+                                    </span>
+                                    {isRevealed && (
+                                      <span className={`text-[10px] font-black px-1.5 rounded ${correctVal === 'V' ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>
+                                        {correctVal}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="leading-relaxed">{opt}</span>
+                                </div>
+                              );
+                            })
+                          ) : (
+                            // Renderização para Múltipla Escolha
+                            q.options.filter(o => o && o.trim() !== '').map((opt, i) => {
+                              const isCorrect = q.correct_answer === String(i);
+                              return (
+                                <div key={i} className={`flex items-start gap-3 text-xs p-3 rounded-xl border transition-all ${isRevealed && isCorrect ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-200' : 'border-white/[0.04] bg-white/[0.02] text-zinc-500'}`}>
+                                  <span className={`font-bold shrink-0 mt-0.5 ${isRevealed && isCorrect ? 'text-emerald-400' : 'text-zinc-600'}`}>
+                                    {['A', 'B', 'C', 'D', 'E'][i]})
+                                  </span> 
+                                  <span className="leading-relaxed">{opt}</span>
+                                  {isRevealed && isCorrect && <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />}
+                                </div>
+                              );
+                            })
+                          )}
                         </div>
                       </div>
                     </motion.div>

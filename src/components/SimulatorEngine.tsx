@@ -21,10 +21,11 @@ interface Question {
   topic: string;
   question_text: string;
   options: string[];
-  correct_answer: number;
+  correct_answer: any;
   hint: string;
   justification: string;
   difficulty: string;
+  type?: 'MULTIPLE_CHOICE' | 'TRUE_FALSE';
 }
 
 export function SimulatorEngine({ 
@@ -45,8 +46,9 @@ export function SimulatorEngine({
   
   // Gameplay State
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [tempAnswer, setTempAnswer] = useState<number | null>(null);
-  const [answers, setAnswers] = useState<Record<number, number>>({}); // index -> option selected
+  const [tempAnswer, setTempAnswer] = useState<number | string | null>(null);
+  const [vfSelections, setVfSelections] = useState<string[]>([]);
+  const [answers, setAnswers] = useState<Record<number, number | string>>({}); // index -> option selected
   const [results, setResults] = useState<Record<number, boolean>>({}); // index -> isCorrect
   const [showExplanation, setShowExplanation] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -110,6 +112,15 @@ export function SimulatorEngine({
     setLives(savedProgress.lives || 3);
     setMode(savedProgress.mode || 'TRAINING');
     setPhase('PLAYING');
+    
+    // Reset VF if needed
+    const q = questions[savedProgress.current_index || 0];
+    if (q?.type === 'TRUE_FALSE') {
+      const saved = savedProgress.answers[savedProgress.current_index || 0];
+      if (saved && typeof saved === 'string') {
+        setVfSelections(saved.split(''));
+      }
+    }
   };
 
   const saveProgress = async (completed = false) => {
@@ -267,13 +278,36 @@ export function SimulatorEngine({
     setTempAnswer(idx);
   };
 
+  const handleVfClick = (itemIdx: number, val: 'V' | 'F') => {
+    if (results[currentIndex] !== undefined) return;
+    const newSelections = [...vfSelections];
+    newSelections[itemIdx] = val;
+    setVfSelections(newSelections);
+    
+    // Se preencheu todos os itens disponíveis, ativa a confirmação
+    const q = questions[currentIndex];
+    const totalItems = q.options.filter(o => o && o.trim() !== '').length;
+    if (newSelections.filter((s, i) => i < totalItems && s !== '').length === totalItems) {
+      setTempAnswer('VF_COMPLETE'); // Valor flag para habilitar o botão
+    }
+  };
+
   const confirmAnswer = () => {
     if (tempAnswer === null || results[currentIndex] !== undefined) return;
 
     const q = questions[currentIndex];
-    const isCorrect = tempAnswer === q.correct_answer;
+    let isCorrect = false;
+    let finalAnswer: string | number = '';
+
+    if (q.type === 'TRUE_FALSE') {
+      finalAnswer = vfSelections.join('');
+      isCorrect = finalAnswer === q.correct_answer;
+    } else {
+      finalAnswer = tempAnswer as number;
+      isCorrect = String(finalAnswer) === String(q.correct_answer);
+    }
     
-    setAnswers(prev => ({ ...prev, [currentIndex]: tempAnswer }));
+    setAnswers(prev => ({ ...prev, [currentIndex]: finalAnswer }));
     setResults(prev => ({ ...prev, [currentIndex]: isCorrect }));
 
     if (!isCorrect && mode === 'SURVIVAL') {
@@ -287,8 +321,17 @@ export function SimulatorEngine({
 
   const nextQuestion = () => {
     if (currentIndex < questions.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-      setTempAnswer(answers[currentIndex + 1] ?? null);
+      const nextIdx = currentIndex + 1;
+      const nextAns = answers[nextIdx];
+      
+      if (questions[nextIdx].type === 'TRUE_FALSE') {
+        setVfSelections(typeof nextAns === 'string' ? nextAns.split('') : new Array(questions[nextIdx].options.length).fill(''));
+        setTempAnswer(nextAns ? 'VF_COMPLETE' : null);
+      } else {
+        setTempAnswer(typeof nextAns === 'number' ? nextAns : null);
+      }
+
+      setCurrentIndex(nextIdx);
       setShowExplanation(false);
     } else {
       finishSimulation();
@@ -297,15 +340,30 @@ export function SimulatorEngine({
 
   const prevQuestion = () => {
     if (currentIndex > 0) {
-      setCurrentIndex(prev => prev - 1);
-      setTempAnswer(answers[currentIndex - 1] ?? null);
+      const prevIdx = currentIndex - 1;
+      setCurrentIndex(prevIdx);
+      const prevAns = answers[prevIdx];
+      
+      if (questions[prevIdx].type === 'TRUE_FALSE') {
+        setVfSelections(typeof prevAns === 'string' ? prevAns.split('') : []);
+        setTempAnswer(prevAns ? 999 : null);
+      } else {
+        setTempAnswer(typeof prevAns === 'number' ? prevAns : null);
+      }
       setShowExplanation(false);
     }
   };
 
   const jumpToQuestion = (idx: number) => {
+    const targetAns = answers[idx];
+    if (questions[idx].type === 'TRUE_FALSE') {
+      setVfSelections(typeof targetAns === 'string' ? targetAns.split('') : new Array(questions[idx].options.length).fill(''));
+      setTempAnswer(targetAns ? 'VF_COMPLETE' : null);
+    } else {
+      setTempAnswer(typeof targetAns === 'number' ? targetAns : null);
+    }
+    
     setCurrentIndex(idx);
-    setTempAnswer(answers[idx] ?? null);
     setShowExplanation(false);
     setDrawerOpen(false);
   };
@@ -619,46 +677,115 @@ export function SimulatorEngine({
                 )}
               </AnimatePresence>
 
-              {/* Alternativas */}
+              {/* Questão de Múltipla Escolha vs V/F */}
               <div className="flex flex-col gap-3">
-                {questions[currentIndex].options.filter(o => o && o.trim() !== '').map((opt, i) => {
-                  const isSelected = tempAnswer === i || answers[currentIndex] === i;
-                  const isCorrectOpt = questions[currentIndex].correct_answer === i;
-                  const isAnswered = results[currentIndex] !== undefined;
-                  
-                  let btnStyle = 'ring-white/[0.08] bg-white/[0.02] text-zinc-400 hover:ring-cyan-500/30 hover:bg-white/[0.05]';
-                  
-                  if (isAnswered) {
-                    if (isCorrectOpt) {
-                      btnStyle = 'ring-emerald-500/50 bg-emerald-500/15 text-emerald-100 shadow-[0_0_15px_rgba(52,211,153,0.1)]';
-                    } else if (isSelected) {
-                      btnStyle = 'ring-rose-500/50 bg-rose-500/15 text-rose-200';
-                    } else {
-                      btnStyle = 'ring-white/[0.03] bg-black/20 text-zinc-600 opacity-40';
-                    }
-                  } else if (isSelected) {
-                    btnStyle = 'ring-cyan-400/60 bg-cyan-500/15 text-white shadow-[0_0_15px_rgba(34,211,238,0.1)]';
-                  }
+                {questions[currentIndex].type === 'TRUE_FALSE' ? (
+                  // MODELO VERDADEIRO OU FALSO
+                  <div className="flex flex-col gap-4">
+                    <div className="text-[10px] text-zinc-500 font-bold tracking-[0.2em] mb-2 uppercase flex justify-between">
+                      <span>ITENS DA QUESTÃO</span>
+                      <span>VERDADEIRO OU FALSO</span>
+                    </div>
+                    {questions[currentIndex].options.map((opt, i) => {
+                      const isAnswered = results[currentIndex] !== undefined;
+                      const currentVal = vfSelections[i];
+                      const correctVal = questions[currentIndex].correct_answer[i];
+                      const isWrong = isAnswered && currentVal !== correctVal;
 
-                  return (
-                    <button 
-                      key={i} 
-                      onClick={() => handleOptionClick(i)}
-                      disabled={isAnswered}
-                      className={`relative p-4 rounded-2xl text-left ring-1 transition-all duration-300 flex items-center gap-4 ${btnStyle}`}
-                    >
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${isSelected || (isAnswered && isCorrectOpt) ? 'bg-white/15' : 'bg-white/[0.04] ring-1 ring-white/10'}`}>
-                        <span className={`font-bold text-sm tracking-widest ${isSelected && !isAnswered ? 'text-white' : 'opacity-80'}`}>
-                          {['A', 'B', 'C', 'D', 'E'][i]}
-                        </span>
+                      return (
+                        <div key={i} className={`group relative p-5 rounded-2xl ring-1 transition-all duration-300 flex items-center gap-4 bg-white/[0.02] ${isAnswered ? (isWrong ? 'ring-rose-500/30' : 'ring-emerald-500/30') : 'ring-white/[0.06]'}`}>
+                          <div className="w-10 h-10 rounded-xl bg-white/[0.04] ring-1 ring-white/10 flex items-center justify-center shrink-0">
+                            <span className="text-zinc-500 font-bold text-xs">{['I', 'II', 'III', 'IV', 'V'][i]}</span>
+                          </div>
+                          <span className="flex-1 text-sm text-zinc-300 leading-relaxed">{opt}</span>
+                          
+                          <div className="flex gap-2 shrink-0">
+                            {['V', 'F'].map(v => {
+                              const isActive = currentVal === v;
+                              const isCorrectBtn = isAnswered && correctVal === v;
+                              
+                              let style = 'bg-white/[0.05] text-zinc-600 border-white/10';
+                              if (isAnswered) {
+                                if (isCorrectBtn) style = 'bg-emerald-500 text-white border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.4)]';
+                                else if (isActive) style = 'bg-rose-500 text-white border-rose-400 opacity-60';
+                                else style = 'bg-black/40 text-zinc-800 border-transparent opacity-20';
+                              } else if (isActive) {
+                                style = v === 'V' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' : 'bg-rose-500/20 text-rose-400 border-rose-500/50';
+                              }
+
+                              return (
+                                <button
+                                  key={v}
+                                  disabled={isAnswered}
+                                  onClick={() => handleVfClick(i, v as 'V' | 'F')}
+                                  className={`w-10 h-10 rounded-lg border font-black text-xs transition-all ${style}`}
+                                >
+                                  {v}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    
+                    {/* Campo de Resposta Final */}
+                    <div className="mt-4 p-6 rounded-2xl bg-black/40 border border-white/[0.06] flex flex-col items-center gap-3">
+                      <span className="text-[10px] text-zinc-500 font-bold tracking-[0.2em] uppercase">SUA RESPOSTA FINAL</span>
+                      <div className="text-2xl font-black tracking-[0.5em] text-cyan-400 font-mono">
+                        {vfSelections.map((s, i) => (
+                          <span key={i} className={s === '' ? 'text-zinc-800' : ''}>{s || '_'}</span>
+                        ))}
                       </div>
-                      <span className="flex-1 text-sm leading-relaxed">{opt}</span>
-                      
-                      {isAnswered && isCorrectOpt && <Check className="w-6 h-6 text-emerald-400 shrink-0 drop-shadow-[0_0_5px_rgba(52,211,153,1)]" />}
-                      {isAnswered && isSelected && !isCorrectOpt && <X className="w-6 h-6 text-red-400 shrink-0 drop-shadow-[0_0_5px_rgba(239,68,68,1)]" />}
-                    </button>
-                  );
-                })}
+                      {results[currentIndex] !== undefined && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-[10px] text-zinc-500 font-bold">GABARITO:</span>
+                          <span className="text-sm font-black text-emerald-400 tracking-[0.3em] font-mono">{questions[currentIndex].correct_answer}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  // MODELO MÚLTIPLA ESCOLHA
+                  questions[currentIndex].options.filter(o => o && o.trim() !== '').map((opt, i) => {
+                    const isSelected = tempAnswer === i || answers[currentIndex] === i || (typeof answers[currentIndex] === 'string' && parseInt(answers[currentIndex]) === i);
+                    const isCorrectOpt = String(questions[currentIndex].correct_answer) === String(i);
+                    const isAnswered = results[currentIndex] !== undefined;
+                    
+                    let btnStyle = 'ring-white/[0.08] bg-white/[0.02] text-zinc-400 hover:ring-cyan-500/30 hover:bg-white/[0.05]';
+                    
+                    if (isAnswered) {
+                      if (isCorrectOpt) {
+                        btnStyle = 'ring-emerald-500/50 bg-emerald-500/15 text-emerald-100 shadow-[0_0_15px_rgba(52,211,153,0.1)]';
+                      } else if (isSelected) {
+                        btnStyle = 'ring-rose-500/50 bg-rose-500/15 text-rose-200';
+                      } else {
+                        btnStyle = 'ring-white/[0.03] bg-black/20 text-zinc-600 opacity-40';
+                      }
+                    } else if (isSelected) {
+                      btnStyle = 'ring-cyan-400/60 bg-cyan-500/15 text-white shadow-[0_0_15px_rgba(34,211,238,0.1)]';
+                    }
+
+                    return (
+                      <button 
+                        key={i} 
+                        onClick={() => handleOptionClick(i)}
+                        disabled={isAnswered}
+                        className={`relative p-4 rounded-2xl text-left ring-1 transition-all duration-300 flex items-center gap-4 ${btnStyle}`}
+                      >
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${isSelected || (isAnswered && isCorrectOpt) ? 'bg-white/15' : 'bg-white/[0.04] ring-1 ring-white/10'}`}>
+                          <span className={`font-bold text-sm tracking-widest ${isSelected && !isAnswered ? 'text-white' : 'opacity-80'}`}>
+                            {['A', 'B', 'C', 'D', 'E'][i]}
+                          </span>
+                        </div>
+                        <span className="flex-1 text-sm leading-relaxed">{opt}</span>
+                        
+                        {isAnswered && isCorrectOpt && <Check className="w-6 h-6 text-emerald-400 shrink-0 drop-shadow-[0_0_5px_rgba(52,211,153,1)]" />}
+                        {isAnswered && isSelected && !isCorrectOpt && <X className="w-6 h-6 text-red-400 shrink-0 drop-shadow-[0_0_5px_rgba(239,68,68,1)]" />}
+                      </button>
+                    );
+                  })
+                )}
               </div>
             </div>
           </div>
