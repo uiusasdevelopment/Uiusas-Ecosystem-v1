@@ -42,6 +42,7 @@ export function SimulatorEngine({
 
   // Configs
   const [mode, setMode] = useState<'TRAINING' | 'SURVIVAL'>('TRAINING');
+  const [shuffleEnabled, setShuffleEnabled] = useState(false);
   const [lives, setLives] = useState(3);
   
   // Gameplay State
@@ -175,6 +176,9 @@ export function SimulatorEngine({
   };
 
   const startSimulation = () => {
+    if (shuffleEnabled) {
+      setQuestions(prev => [...prev].sort(() => Math.random() - 0.5));
+    }
     setPhase('PLAYING');
     setCurrentIndex(0);
     setAnswers({});
@@ -505,6 +509,19 @@ export function SimulatorEngine({
                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-white/[0.04] ring-1 ring-white/[0.08] text-zinc-400 font-bold tracking-wider text-[11px] hover:bg-white/[0.08] hover:text-zinc-200 transition-all"
               >
                 <Printer className="w-4 h-4" /> GERAR PDF PARA ESTUDO OFFLINE
+              </button>
+
+              <button 
+                onClick={() => setShuffleEnabled(!shuffleEnabled)}
+                className={`w-full flex items-center justify-between px-5 py-3.5 rounded-xl transition-all border ${shuffleEnabled ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.1)]' : 'bg-white/[0.02] border-white/[0.06] text-zinc-500 hover:bg-white/[0.05]'}`}
+              >
+                <div className="flex items-center gap-3">
+                  <Menu className={`w-4 h-4 rotate-90 ${shuffleEnabled ? 'text-cyan-400' : 'text-zinc-600'}`} />
+                  <span className="text-[11px] font-bold tracking-widest">EMBARALHAR QUESTÕES</span>
+                </div>
+                <div className={`w-10 h-5 rounded-full relative transition-colors ${shuffleEnabled ? 'bg-cyan-500' : 'bg-zinc-800'}`}>
+                  <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${shuffleEnabled ? 'right-1' : 'left-1'}`} />
+                </div>
               </button>
             </div>
 
