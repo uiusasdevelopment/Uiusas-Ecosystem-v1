@@ -53,21 +53,36 @@ export function QuestionBank({ userProfile, isAdmin, onStartSimulation, onOpenSi
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (!confirm('Deseja processar este arquivo CSV para o Banco de Dados Mestre?')) return;
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+    if (!confirm(`Deseja processar ${files.length} arquivo(s) CSV para o Banco de Dados Mestre?`)) return;
     setUploading(true);
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const text = e.target?.result as string;
-      await processCSV(text);
-    };
-    reader.readAsText(file);
+    
+    let totalInserted = 0;
+    
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const text = await file.text();
+      const insertedCount = await processCSV(text, true);
+      if (insertedCount) {
+        totalInserted += insertedCount;
+      }
+    }
+    
+    alert(`${totalInserted} questões inseridas no total!`);
+    fetchQuestions();
+    setUploading(false);
+    
+    // Limpa o input para permitir selecionar os mesmos arquivos novamente se necessário
+    event.target.value = '';
   };
 
-  const processCSV = async (csvText: string) => {
+  const processCSV = async (csvText: string, isBulk: boolean = false) => {
     const lines = csvText.split('\n').filter(l => l.trim().length > 0);
-    if (lines.length < 2) { alert("CSV inválido."); setUploading(false); return; }
+    if (lines.length < 2) { 
+      if (!isBulk) { alert("CSV inválido."); setUploading(false); }
+      return 0; 
+    }
     const newQuestions = [];
     for (let i = 1; i < lines.length; i++) {
       try {
@@ -93,12 +108,29 @@ export function QuestionBank({ userProfile, isAdmin, onStartSimulation, onOpenSi
         }
       } catch (err) { console.error(`Erro linha ${i}:`, err); }
     }
+    
     if (newQuestions.length > 0) {
       const { error } = await supabase.from('quiz_questions').insert(newQuestions);
-      if (error) alert("Erro: " + error.message);
-      else { alert(`${newQuestions.length} questões inseridas!`); fetchQuestions(); }
-    } else { alert("Nenhuma questão válida encontrada."); }
-    setUploading(false);
+      if (error) {
+        alert("Erro: " + error.message);
+        if (!isBulk) setUploading(false);
+        return 0;
+      }
+      else { 
+        if (!isBulk) { 
+          alert(`${newQuestions.length} questões inseridas!`); 
+          fetchQuestions(); 
+          setUploading(false);
+        }
+        return newQuestions.length;
+      }
+    } else { 
+      if (!isBulk) {
+        alert("Nenhuma questão válida encontrada."); 
+        setUploading(false);
+      }
+      return 0;
+    }
   };
 
   const startSimulationFromPreset = async (simId: string) => {
@@ -368,7 +400,7 @@ export function QuestionBank({ userProfile, isAdmin, onStartSimulation, onOpenSi
                     <Upload className="w-3 h-3" /> UPLOAD CSV (ADMIN)
                   </label>
                   <div className="relative">
-                    <input type="file" accept=".csv" onChange={handleFileUpload} disabled={uploading}
+                    <input type="file" accept=".csv" multiple onChange={handleFileUpload} disabled={uploading}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
                     <div className="bg-fuchsia-500/10 border border-fuchsia-500/20 rounded-xl text-[11px] text-fuchsia-300 font-bold tracking-wider px-4 py-3 text-center hover:bg-fuchsia-500/20 transition-colors cursor-pointer">
                       {uploading ? 'PROCESSANDO...' : 'INJETAR ARQUIVO CSV'}
