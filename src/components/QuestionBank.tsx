@@ -11,7 +11,7 @@ import { generatePDFContent } from '@/utils/pdfGenerator';
 interface QuestionBankProps {
   userProfile: UserProfile | null;
   isAdmin: boolean;
-  onStartSimulation?: (questionIds: string[], title?: string, subject?: string) => void;
+  onStartSimulation?: (questionIds: string[], title?: string, subject?: string, id?: string) => void;
   onOpenSimulationManager?: () => void;
 }
 

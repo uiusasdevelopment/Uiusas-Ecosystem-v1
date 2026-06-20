@@ -525,7 +525,7 @@ export function AdminSimulationManager({
               </div>
             </div>
           </motion.div>
-        ) : (
+        ) : activeTab === 'MANAGE' ? (
           <motion.div 
             key="manage"
             initial={{ opacity: 0, x: 20 }}

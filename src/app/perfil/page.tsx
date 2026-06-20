@@ -20,6 +20,7 @@ interface UserProfile {
   display_name: string;
   avatar_id: string;
   stats_data: any;
+  active_subjects?: string[];
 }
 
 const AVATAR_MAP: Record<string, any> = {

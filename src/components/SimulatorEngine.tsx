@@ -271,7 +271,7 @@ export function SimulatorEngine({
       if (wrongIds.length > 0) {
         const guestErrorsRaw = localStorage.getItem('uiusas_guest_errors');
         let guestErrors: string[] = guestErrorsRaw ? JSON.parse(guestErrorsRaw) : [];
-        const newErrors = [...new Set([...guestErrors, ...wrongIds])];
+        const newErrors = Array.from(new Set([...guestErrors, ...wrongIds]));
         localStorage.setItem('uiusas_guest_errors', JSON.stringify(newErrors));
       }
     }
@@ -1004,11 +1004,11 @@ export function SimulatorEngine({
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                               <div className="ring-1 ring-rose-500/25 bg-rose-500/[0.08] rounded-xl p-4 flex flex-col gap-2">
                                 <span className="text-red-400 font-bold text-[10px] tracking-widest uppercase flex items-center gap-1"><X className="w-3 h-3" /> VOCÊ MARCOU:</span>
-                                <span className="text-sm text-red-100">{userAnswerIdx !== undefined ? q.options[userAnswerIdx] : 'NENHUMA (TEMPO/PULO)'}</span>
+                                <span className="text-sm text-red-100">{userAnswerIdx !== undefined ? q.options[Number(userAnswerIdx)] : 'NENHUMA (TEMPO/PULO)'}</span>
                               </div>
                               <div className="ring-1 ring-emerald-500/25 bg-emerald-500/[0.08] rounded-xl p-4 flex flex-col gap-2">
                                 <span className="text-emerald-400 font-bold text-[10px] tracking-widest uppercase flex items-center gap-1"><Check className="w-3 h-3" /> CORRETA:</span>
-                                <span className="text-sm text-emerald-100">{q.options[q.correct_answer]}</span>
+                                <span className="text-sm text-emerald-100">{q.options[Number(q.correct_answer)]}</span>
                               </div>
                             </div>
                           </div>
