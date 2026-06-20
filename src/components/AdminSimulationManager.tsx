@@ -5,8 +5,9 @@ import { createClient } from '@/utils/supabase/client';
 import { 
   Plus, Trash2, Save, X, Search, Check, 
   ChevronRight, Layout, BookOpen, AlertTriangle,
-  ArrowRight, ListChecks, Filter, Info, Play, Edit3
+  ArrowRight, ListChecks, Filter, Info, Play, Edit3, Download, Sparkles
 } from 'lucide-react';
+import { generatePDFContent } from '@/utils/pdfGenerator';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Question {
@@ -47,7 +48,8 @@ export function AdminSimulationManager({
   
   const [isSaving, setIsSaving] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'HOME' | 'CREATE' | 'MANAGE'>('HOME');
+  const [activeTab, setActiveTab] = useState<'HOME' | 'CREATE' | 'MANAGE' | 'AUTO_GENERATE'>('HOME');
+  const [autoGenSubject, setAutoGenSubject] = useState('');
 
   const supabase = createClient();
 
@@ -181,6 +183,81 @@ export function AdminSimulationManager({
     }
   };
 
+  const handleAutoGenerate = async () => {
+    if (!autoGenSubject) {
+      alert("Selecione uma cadeira.");
+      return;
+    }
+    if (!confirm(`Gerar simulados automaticamente para todos os tópicos de ${autoGenSubject}?`)) return;
+    
+    setIsSaving(true);
+    
+    const subjectQuestions = questionsPool.filter(q => q.subject === autoGenSubject);
+    if (subjectQuestions.length === 0) {
+      alert("Nenhuma questão encontrada para essa cadeira.");
+      setIsSaving(false);
+      return;
+    }
+
+    const grouped: Record<string, Question[]> = {};
+    subjectQuestions.forEach(q => {
+      const topic = q.topic || 'Sem Tópico';
+      if (!grouped[topic]) grouped[topic] = [];
+      grouped[topic].push(q);
+    });
+
+    let createdCount = 0;
+    
+    for (const [topic, qList] of Object.entries(grouped)) {
+      const title = `Simulado ${autoGenSubject} - ${topic}`;
+      
+      const { data: sim, error: simError } = await supabase
+        .from('quiz_simulations')
+        .insert({ 
+          title: title, 
+          description: `Simulado gerado automaticamente para o tópico: ${topic}`, 
+          is_official: true, 
+          subject: autoGenSubject 
+        })
+        .select().single();
+
+      if (simError) {
+        console.error("Erro ao criar simulado", simError);
+        continue;
+      }
+
+      const links = qList.map((q, idx) => ({
+        simulation_id: sim.id,
+        question_id: q.id,
+        question_order: idx + 1
+      }));
+      
+      await supabase.from('quiz_simulation_questions').insert(links);
+      createdCount++;
+    }
+
+    alert(`${createdCount} simulados criados com sucesso!`);
+    setIsSaving(false);
+    setAutoGenSubject('');
+    fetchInitialData();
+    setActiveTab('MANAGE');
+  };
+
+  const exportSimulationPDF = async (sim: Simulation) => {
+    const { data } = await supabase
+      .from('quiz_simulation_questions')
+      .select('question_id, quiz_questions(*)')
+      .eq('simulation_id', sim.id)
+      .order('question_order', { ascending: true });
+    
+    if (data && data.length > 0) {
+      const qs = data.map((d: any) => d.quiz_questions);
+      generatePDFContent(qs, sim.title, sim.description || 'SIMULADO OFICIAL');
+    } else {
+      alert("Este simulado não possui questões vinculadas.");
+    }
+  };
+
   const subjects = Array.from(new Set(questionsPool.map(q => q.subject))).sort();
   const topics = Array.from(new Set(questionsPool.filter(q => filterSubject === 'ALL' || q.subject === filterSubject).map(q => q.topic))).sort();
   
@@ -222,6 +299,13 @@ export function AdminSimulationManager({
               >
                 Gerenciar Ativos
               </button>
+              <span className="text-zinc-800">/</span>
+              <button 
+                onClick={() => setActiveTab('AUTO_GENERATE')}
+                className={`text-lg font-black tracking-widest uppercase transition-all ${activeTab === 'AUTO_GENERATE' ? 'text-emerald-400' : 'text-emerald-900 hover:text-emerald-600'}`}
+              >
+                Auto-Gerador
+              </button>
             </div>
             <p className="text-[10px] text-zinc-500 tracking-[0.3em] uppercase mt-1">Central de Comando de Simulados // V2.5</p>
           </div>
@@ -240,7 +324,7 @@ export function AdminSimulationManager({
             exit={{ opacity: 0, scale: 0.95 }}
             className="flex-1 flex items-center justify-center p-12"
           >
-            <div className="grid grid-cols-2 gap-8 w-full max-w-4xl">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl">
               <button 
                 onClick={() => setActiveTab('CREATE')}
                 className="group relative flex flex-col items-center justify-center p-12 bg-white/[0.02] border border-white/5 rounded-[3rem] hover:border-fuchsia-500/50 hover:bg-fuchsia-500/5 transition-all"
@@ -264,6 +348,17 @@ export function AdminSimulationManager({
                 {simulations.length > 0 && (
                   <span className="absolute top-6 right-6 px-3 py-1 bg-cyan-500 text-black text-[10px] font-black rounded-full">{simulations.length}</span>
                 )}
+              </button>
+              
+              <button 
+                onClick={() => setActiveTab('AUTO_GENERATE')}
+                className="group relative flex flex-col items-center justify-center p-12 bg-white/[0.02] border border-white/5 rounded-[3rem] hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all"
+              >
+                <div className="w-20 h-20 bg-emerald-500/10 rounded-3xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <Sparkles className="w-10 h-10 text-emerald-400" />
+                </div>
+                <h3 className="text-xl font-black text-white tracking-widest uppercase mb-2 text-center">Auto-Gerador</h3>
+                <p className="text-xs text-zinc-500 text-center uppercase tracking-tighter">Criar simulados baseados em tópicos</p>
               </button>
             </div>
           </motion.div>
@@ -465,6 +560,13 @@ export function AdminSimulationManager({
                       <Play className="w-3 h-3" /> Testar Protocolo
                     </button>
                     <button 
+                      onClick={() => exportSimulationPDF(sim)}
+                      className="px-4 py-3 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl transition-all"
+                      title="Exportar PDF"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                    <button 
                       onClick={() => handleEdit(sim)}
                       className="px-4 py-3 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 rounded-xl transition-all"
                     >
@@ -481,7 +583,44 @@ export function AdminSimulationManager({
               ))}
             </div>
           </motion.div>
-        )}
+        ) : activeTab === 'AUTO_GENERATE' ? (
+          <motion.div 
+            key="autogen"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="flex-1 flex flex-col items-center justify-center p-12"
+          >
+            <div className="max-w-xl w-full bg-white/[0.02] border border-white/5 rounded-[3rem] p-12 flex flex-col items-center shadow-2xl">
+              <div className="w-24 h-24 bg-emerald-500/10 rounded-3xl flex items-center justify-center mb-8">
+                <Sparkles className="w-12 h-12 text-emerald-400" />
+              </div>
+              <h2 className="text-2xl font-black text-white tracking-widest uppercase mb-4 text-center">Gerador Automático</h2>
+              <p className="text-sm text-zinc-400 text-center uppercase tracking-tighter mb-8 leading-relaxed">
+                Selecione uma cadeira abaixo. O sistema irá criar simulados oficiais separadamente para cada tópico encontrado no acervo.
+              </p>
+              
+              <div className="w-full space-y-6">
+                <select 
+                  value={autoGenSubject}
+                  onChange={(e) => setAutoGenSubject(e.target.value)}
+                  className="w-full bg-black/40 border border-white/10 rounded-2xl p-5 text-white text-sm focus:outline-none focus:border-emerald-500/50 uppercase font-bold"
+                >
+                  <option value="">Selecione uma cadeira...</option>
+                  {subjects.map(s => <option key={s} value={s} className="bg-zinc-900">{s}</option>)}
+                </select>
+                
+                <button
+                  onClick={handleAutoGenerate}
+                  disabled={isSaving || !autoGenSubject}
+                  className="w-full py-5 bg-gradient-to-r from-emerald-500 to-teal-600 text-black rounded-2xl text-sm font-black tracking-[0.3em] hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all disabled:opacity-30 uppercase"
+                >
+                  {isSaving ? 'Processando...' : 'Iniciar Geração em Massa'}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        ) : null}
       </AnimatePresence>
 
       <style dangerouslySetInnerHTML={{__html: `
